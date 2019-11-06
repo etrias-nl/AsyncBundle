@@ -7,9 +7,7 @@ namespace Etrias\AsyncBundle\Middleware;
 
 
 use Etrias\AsyncBundle\Command\WrappedCommandInterface;
-use Etrias\Bundles\CMSUserBundle\Entity\User;
 use Etrias\AsyncBundle\Command\AsyncableCommandInterface;
-use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
 use Etrias\AsyncBundle\Event\BackgroundJobQueuedEvent;
 use Etrias\AsyncBundle\Exceptions\JobNotFoundException;
 use Etrias\AsyncBundle\Logger\ProfileLogger;

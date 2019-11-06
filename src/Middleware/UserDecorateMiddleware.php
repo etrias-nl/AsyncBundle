@@ -34,7 +34,7 @@ class UserDecorateMiddleware implements Middleware
     }
 
     /**
-     * @param CommandInterface $command
+     * @param object $command
      * @param callable $next
      *
      * @return mixed
@@ -42,6 +42,10 @@ class UserDecorateMiddleware implements Middleware
      */
     public function execute($command, callable $next)
     {
+        if (!$command instanceof CommandInterface) {
+            return $next($command);
+        }
+
         if ($token = $this->tokenStorage->getToken()) {
             if ($user = $token->getUser()) {
                 $command = new UserAwareCommandWrapper($command, $this->tokenStorage->getToken()->getUser()->getId());
