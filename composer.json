@@ -6,7 +6,7 @@
         "mmoreram/gearman-bundle": "^4.1",
         "etrias/cqrs-bundle": "1.0.x-dev",
         "symfony/dependency-injection": "^3.4 || ^4.3",
-        "league/tactician": "^1.0"
+        "league/tactician-bundle": "^1.1"
     },
     "suggest": {
         "liip/monitor-bundle": "Monitor gearman servers"
