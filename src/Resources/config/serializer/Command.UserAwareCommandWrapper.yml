@@ -1,0 +1,9 @@
+Etrias\AsyncBundle\Command\UserAwareCommandWrapper:
+    exclusion_policy: ALL
+    access_type: public_method
+    properties:
+      userId:
+        type: integer
+        groups: ['logging']
+      command:
+        groups: ['logging']

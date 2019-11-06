@@ -1,0 +1,70 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block toolbar %}
+    {% set icon %}
+        {# this is the content displayed as a panel in the toolbar #}
+        <span class="icon">{{ include('@EtriasAsyncBundle/Resources/assets/profiler-icon.svg') }}</span>
+        <span class="sf-toolbar-value">{{ collector.commands|length }}</span>
+        <span class="sf-toolbar-info-piece-additional-detail">
+            <span class="sf-toolbar-label">in</span>
+            <span class="sf-toolbar-value">{{ (collector.timeSpent*1000)|round(2) }}</span>
+            <span class="sf-toolbar-label">ms</span>
+        </span>
+    {% endset %}
+
+    {% set text %}
+        {%  for method, commands in collector.groupedCommands %}
+            <div class="sf-toolbar-info-piece">
+                <b>{{ method }}</b>
+                <span class="sf-toolbar-status">{{ commands|length }}</span>
+            </div>
+        {% endfor %}
+        <div class="sf-toolbar-info-piece">
+            <b>Time spent</b>
+            <span>{{ (collector.timeSpent*1000)|round(2) }} ms</span>
+        </div>
+    {% endset %}
+
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { link: profiler_url }) }}
+{% endblock %}
+
+{% block menu %}
+    {# This left-hand menu appears when using the full-screen profiler. #}
+    <span class="label">
+        <span class="icon">{{ include('@EtriasAsyncBundle/Resources/assets/profiler-icon.svg') }}</span>
+        <strong>Async</strong>
+        <span class="count">{{ collector.commands|length }}</span>
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>Gearman Commands</h2>
+
+    {% if collector.commands|length == 0 %}
+        <p>No commands handled</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Method</th>
+                    <th>CommandName</th>
+                    <th>Command</th>
+                    <th>Time (ms)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for index, data in collector.commands %}
+                    <tr>
+                        <td>{{ index }}</td>
+                        <td>{{ data.method }}</td>
+                        <td>{{ data.jobConfig.callableName }}</td>
+                        <td>{{ dump(data.command) }}</td>
+                        <td>{{ (data.executionMS*1000)|round(4) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services
+        http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <defaults autowire="true" autoconfigure="true" public="false" />
+        <prototype namespace="Etrias\AsyncBundle\" resource="../../*" exclude="../../{Entity,Command,Model,Migrations,Tests}"/>
+
+        <service id="Etrias\AsyncBundle\Workers\CommandBusWorker" public="true">
+            <argument type="service" id="gearman" />
+            <argument key="$doctrine" type="service" id="doctrine" on-invalid="ignore"/>
+        </service>
+
+        <service id="Etrias\AsyncBundle\Middleware\AsyncMiddleware">
+            <argument type="service" id="gearman"/>
+            <tag name="monolog.logger" channel="async"/>
+        </service>
+
+        <service id="etrias_async.profile_logger" class="Etrias\AsyncBundle\Logger\ProfileLogger"/>
+
+        <service id="Etrias\AsyncBundle\Logger\Formatter\JmsFormatter">
+            <argument type="service" id="jms_serializer"/>
+        </service>
+
+        <service id="Etrias\AsyncBundle\Registry\WorkerAnnotationRegistry" public="true"/>
+        <service id="Etrias\AsyncBundle\Registry\JobRegistry" public="true"/>
+
+        <service id="gearman.describer" class="%gearman.describer.class%">
+
+        </service>
+
+        <service id="Etrias\AsyncBundle\Service\GearmanManager" lazy="true" public="true">
+            <argument type="string">%gearman.servers%</argument>
+        </service>
+
+        <service id="Etrias\AsyncBundle\Check\GearmanCheck" public="true" autoconfigure="false">
+            <argument type="service" key="$gearmanClient" id="gearman"/>
+            <tag name="liip_monitor.check" alias="gearman" />
+        </service>
+
+        <service id="etrias_async.command_collector" class="Etrias\AsyncBundle\DataCollector\CommandCollector" public="false">
+            <argument type="service" id="etrias_async.profile_logger"/>
+            <tag name="data_collector" template="@EtriasAsync/Profiler/layout.html.twig"  id="etrias_async.command_collector" />
+        </service>
+
+    </services>
+</container>

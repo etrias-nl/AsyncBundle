@@ -1,0 +1,3 @@
+parameters:
+  gearman.parser.class:  Etrias\AsyncBundle\Service\GearmanParser
+  gearman.describer.class: Etrias\AsyncBundle\Service\GearmanDescriber
