@@ -28,13 +28,13 @@ class DoctrineMiddlewarePass implements CompilerPassInterface
 
         foreach ($entityManagers as $name => $serviceId) {
             $container->setDefinition(
-                sprintf('etrias.etrias_async.doctrine.%s', $name),
+                sprintf('etrias.async.doctrine.%s', $name),
                 new Definition(TransactionMiddleware::class, [ new Reference($serviceId) ])
             );
         }
 
         $defaultEntityManager = $container->getParameter('doctrine.default_entity_manager');
-        $container->setAlias('etrias.etrias_async.doctrine', sprintf('etrias.etrias_async.doctrine.%s', $defaultEntityManager));
+        $container->setAlias('etrias.async.doctrine', sprintf('etrias.async.doctrine.%s', $defaultEntityManager));
     }
 }
 
