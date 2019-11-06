@@ -1,5 +1,5 @@
 {
-    "name": "etrias/asyncbundle",
+    "name": "etrias/async-bundle",
     "description": "Symfony bundle for async connectivity",
     "type": "symfony-bundle",
     "require": {
