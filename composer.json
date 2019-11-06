@@ -3,9 +3,13 @@
     "description": "Symfony bundle for async connectivity",
     "type": "symfony-bundle",
     "require": {
-        "mmoreram/gearman-bundle": "4.1",
+        "mmoreram/gearman-bundle": "^4.1",
         "etrias/cqrs-bundle": "1.0.x-dev",
-        "symfony/dependency-injection": "^3.4 || ^4.3"
+        "symfony/dependency-injection": "^3.4 || ^4.3",
+        "league/tactician": "^1.0"
+    },
+    "suggest": {
+        "liip/monitor-bundle": "Monitor gearman servers"
     },
     "authors": [
         {

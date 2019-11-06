@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "371ea4062cc2069c6157b63909baf25c",
+    "content-hash": "5eb987c5bb3287851c0d318e54beac27",
     "packages": [
         {
             "name": "composer/semver",
@@ -865,16 +865,22 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/etrias-nl/CqrsBundle.git",
-                "reference": "e16e5c6b1d049551e00add6af6922ce4943a7020"
+                "reference": "63f1527106862c43a801828edb7220ecaea74c68"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/etrias-nl/CqrsBundle/zipball/e16e5c6b1d049551e00add6af6922ce4943a7020",
-                "reference": "e16e5c6b1d049551e00add6af6922ce4943a7020",
+                "url": "https://api.github.com/repos/etrias-nl/CqrsBundle/zipball/63f1527106862c43a801828edb7220ecaea74c68",
+                "reference": "63f1527106862c43a801828edb7220ecaea74c68",
                 "shasum": ""
+            },
+            "require": {
+                "symfony/dependency-injection": "^3.4 || ^4.3"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^2.16"
+            },
+            "suggest": {
+                "league/tactician": "Command bus if you want to use cache middleware"
             },
             "type": "symfony-bundle",
             "extra": {
@@ -895,7 +901,7 @@
                 }
             ],
             "description": "Symfony bundle for cqrs",
-            "time": "2019-11-06T10:38:57+00:00"
+            "time": "2019-11-06T12:07:33+00:00"
         },
         {
             "name": "friendsofphp/php-cs-fixer",
@@ -985,6 +991,57 @@
             ],
             "description": "A tool to automatically fix PHP code style",
             "time": "2019-11-03T13:31:09+00:00"
+        },
+        {
+            "name": "league/tactician",
+            "version": "v1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/tactician.git",
+                "reference": "d0339e22fd9252fb0fa53102b488d2c514483b8a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/tactician/zipball/d0339e22fd9252fb0fa53102b488d2c514483b8a",
+                "reference": "d0339e22fd9252fb0fa53102b488d2c514483b8a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5"
+            },
+            "require-dev": {
+                "mockery/mockery": "~0.9",
+                "phpunit/phpunit": "^4.8.35",
+                "squizlabs/php_codesniffer": "~2.3"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "League\\Tactician\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ross Tuck",
+                    "homepage": "http://tactician.thephpleague.com"
+                }
+            ],
+            "description": "A small, flexible command bus. Handy for building service layers.",
+            "keywords": [
+                "command",
+                "command bus",
+                "service layer"
+            ],
+            "time": "2017-11-30T09:17:20+00:00"
         },
         {
             "name": "mmoreram/gearman-bundle",
