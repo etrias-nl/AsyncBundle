@@ -7,7 +7,7 @@ namespace Etrias\AsyncBundle\Logger\Formatter;
 
 
 use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
-use Etrias\Bundles\CoreCQRSBundle\Command\QueryInterface;
+use Etrias\CqrsBundle\Command\QueryInterface;
 use Exception;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;

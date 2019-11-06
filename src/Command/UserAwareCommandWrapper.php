@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Etrias\AsyncBundle\Command;
 
 
-use Etrias\Bundles\CoreCQRSBundle\Command\CommandInterface;
+use Etrias\CqrsBundle\Command\CommandInterface;
 
 class UserAwareCommandWrapper implements CommandInterface, WrappedCommandInterface
 {

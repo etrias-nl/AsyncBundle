@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Etrias\AsyncBundle\Middleware;
 
 use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
-use Etrias\Bundles\CoreCQRSBundle\Command\CommandInterface;
+use Etrias\CqrsBundle\Command\CommandInterface;
 use League\Tactician\Middleware;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
