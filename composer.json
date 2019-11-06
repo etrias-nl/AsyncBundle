@@ -3,7 +3,8 @@
     "description": "Symfony bundle for async connectivity",
     "type": "symfony-bundle",
     "require": {
-        "mmoreram/gearman-bundle": "4.1"
+        "mmoreram/gearman-bundle": "4.1",
+        "etrias/cqrs-bundle": "1.0.x-dev"
     },
     "authors": [
         {
