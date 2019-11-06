@@ -5,8 +5,6 @@ declare(strict_types=1);
 
 namespace Etrias\AsyncBundle\Middleware;
 
-use Etrias\Bundles\CMSUserBundle\Repository\UserRepository;
-use Etrias\AsyncBundle\Authentication\Token\CommandBusToken;
 use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
 use Etrias\Bundles\CoreCQRSBundle\Command\CommandInterface;
 use League\Tactician\Middleware;
@@ -19,18 +17,11 @@ class UserDecorateMiddleware implements Middleware
      */
     protected $tokenStorage;
 
-    /**
-     * @var UserRepository
-     */
-    protected $userRepository;
-
     public function __construct(
-        UserRepository $userRepository,
         TokenStorageInterface $tokenStorage
     )
     {
         $this->tokenStorage = $tokenStorage;
-        $this->userRepository = $userRepository;
     }
 
     /**

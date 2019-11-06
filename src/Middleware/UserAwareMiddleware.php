@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace Etrias\AsyncBundle\Middleware;
 
-use Etrias\Bundles\CMSUserBundle\Repository\UserRepository;
+use Doctrine\ORM\EntityRepository;
 use Etrias\AsyncBundle\Authentication\Token\CommandBusToken;
 use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
 use League\Tactician\Middleware;
@@ -19,12 +19,12 @@ class UserAwareMiddleware implements Middleware
     protected $tokenStorage;
 
     /**
-     * @var UserRepository
+     * @var EntityRepository
      */
     protected $userRepository;
 
     public function __construct(
-        UserRepository $userRepository,
+        EntityRepository $userRepository,
         TokenStorageInterface $tokenStorage
     )
     {
@@ -42,7 +42,7 @@ class UserAwareMiddleware implements Middleware
     public function execute($command, callable $next)
     {
         if ($command instanceof UserAwareCommandWrapper) {
-            $user = $this->userRepository->getReference($command->getUserId());
+            $user = $this->userRepository->find($command->getUserId());
             $command = $command->getCommand();
 
             $token = new CommandBusToken([]);
