@@ -2,19 +2,15 @@
     "name": "etrias/asyncbundle",
     "description": "Symfony bundle for async connectivity",
     "type": "symfony-bundle",
+    "require": {
+        "mmoreram/gearman-bundle": "4.1"
+    },
     "authors": [
         {
             "name": "Christ-Jan",
             "email": "christ-jan@etrias.nl"
         }
     ],
-    "require": {
-        "mmoreram/gearman-bundle": "4.1"
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.16"
-    },
-
     "autoload": {
         "psr-4": {
             "Etrias\\AsyncBundle\\": "./src/"
@@ -30,10 +26,5 @@
             "vendor/bin/php-cs-fixer fix --diff --show-progress run-in"
         ]
     },
-    "minimum-stability": "stable",
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0.x-dev"
-        }
-    }
+    "minimum-stability": "stable"
 }
