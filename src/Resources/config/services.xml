@@ -10,6 +10,8 @@
         <defaults autowire="true" autoconfigure="true" public="false" />
         <prototype namespace="Etrias\AsyncBundle\" resource="../../*" exclude="../../{Entity,Command,Model,Migrations,Tests}"/>
 
+        <service id="tactician.handler.command_name_extractor.class_name" class="Etrias\AsyncBundle\Handler\CommandNameExtractor\ClassNameExtractor"/>
+
         <service id="Etrias\AsyncBundle\Workers\CommandBusWorker" public="true">
             <argument type="service" id="gearman" />
             <argument key="$doctrine" type="service" id="doctrine" on-invalid="ignore"/>

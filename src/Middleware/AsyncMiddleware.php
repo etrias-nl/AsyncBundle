@@ -153,7 +153,7 @@ class AsyncMiddleware implements Middleware
         if ($innerCommand instanceof AsyncableCommandInterface && $innerCommand->isAsync() === false) {
             $this->logger->debug('Async is overruled by command', ['command' => $commandClassName]);
 
-            return $next($command);
+            return $next($innerCommand);
         }
 
         $jobConfig = $this->getJobConfig($commandClassName);
