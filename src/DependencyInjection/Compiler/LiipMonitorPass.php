@@ -13,7 +13,7 @@ class LiipMonitorPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('liip_monitor.runner')) {
+        if (!$container->has('liip_monitor.runner')) {
             $container->removeDefinition(GearmanCheck::class);
         }
     }
