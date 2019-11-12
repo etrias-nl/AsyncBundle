@@ -6,6 +6,7 @@
         "mmoreram/gearman-bundle": "^4.1",
         "etrias/cqrs-bundle": "1.0.x-dev",
         "symfony/dependency-injection": "^3.4 || ^4.3",
+        "symfony/http-kernel": "^3.4 || ^4.3",
         "league/tactician-bundle": "^1.1"
     },
     "suggest": {
