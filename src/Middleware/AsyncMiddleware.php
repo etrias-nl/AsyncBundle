@@ -142,16 +142,16 @@ class AsyncMiddleware implements Middleware
             $innerCommand = $command;
         }
 
-        if ($this->jobRegistry->hasConfig(get_class($innerCommand))) {
-            $commandClassName = get_class($innerCommand);
-        } else {
+        try {
             $commandClassName = $this->getNameForCommand($innerCommand);
+        } catch (\InvalidArgumentException $e) {
+            $commandClassName = get_class($innerCommand);
+        }
 
-            if (!$this->jobRegistry->hasConfig($commandClassName)) {
-                $this->logger->debug('No async configuration defined for command', ['command' => $commandClassName]);
+        if (!$this->jobRegistry->hasConfig($commandClassName)) {
+            $this->logger->debug('No async configuration defined for command', ['command' => $commandClassName]);
 
-                return $next($command);
-            }
+            return $next($command);
         }
 
         if ($innerCommand instanceof AsyncableCommandInterface && $innerCommand->isAsync() === false) {
