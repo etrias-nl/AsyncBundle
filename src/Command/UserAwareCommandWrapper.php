@@ -17,11 +17,14 @@ class UserAwareCommandWrapper implements CommandInterface, WrappedCommandInterfa
     protected $command;
 
     /**
-     * @var int
+     * @var int|string|int[]|string[]
      */
     protected $userId;
 
-    public function __construct(CommandInterface $command, int $userId)
+    /**
+     * @param int|string|int[]|string[] $userId
+     */
+    public function __construct(CommandInterface $command, $userId)
     {
         $this->command = $command;
         $this->userId = $userId;
@@ -47,18 +50,18 @@ class UserAwareCommandWrapper implements CommandInterface, WrappedCommandInterfa
     }
 
     /**
-     * @return int
+     * @return int|string|int[]|string[]
      */
-    public function getUserId(): int
+    public function getUserId()
     {
         return $this->userId;
     }
 
     /**
-     * @param int $userId
+     * @param int|string|int[]|string[] $userId
      * @return UserAwareCommandWrapper
      */
-    public function setUserId(int $userId): UserAwareCommandWrapper
+    public function setUserId($userId): UserAwareCommandWrapper
     {
         $this->userId = $userId;
 
