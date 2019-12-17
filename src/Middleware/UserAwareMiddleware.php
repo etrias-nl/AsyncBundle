@@ -41,9 +41,10 @@ class UserAwareMiddleware implements Middleware
      */
     public function execute($command, callable $next)
     {
+        $innerCommand = $command;
         if ($command instanceof UserAwareCommandWrapper) {
             $user = $this->userRepository->find($command->getUserId());
-            $command = $command->getCommand();
+            $innerCommand = $command->getCommand();
 
             $token = new CommandBusToken([]);
             $token->setUser($user);
@@ -51,7 +52,7 @@ class UserAwareMiddleware implements Middleware
             $this->tokenStorage->setToken($token);
         }
 
-        $result = $next($command);
+        $result = $next($innerCommand);
 
         if ($command instanceof UserAwareCommandWrapper) {
             $this->tokenStorage->setToken(null);
