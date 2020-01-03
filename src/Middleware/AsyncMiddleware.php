@@ -22,15 +22,15 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Serializer\Exception\UnsupportedException;
+use Symfony\Component\Serializer\SerializerAwareInterface;
+use Symfony\Component\Serializer\SerializerAwareTrait;
 use Symfony\Component\Serializer\SerializerInterface;
 
 
-class AsyncMiddleware implements Middleware
+class AsyncMiddleware implements Middleware, SerializerAwareInterface
 {
-    /**
-     * @var SerializerInterface
-     */
-    protected $serializer;
+    use SerializerAwareTrait;
+
     /**
      * @var JobRegistry
      */
@@ -78,7 +78,6 @@ class AsyncMiddleware implements Middleware
     /**
      * AsyncMiddleware constructor.
      * @param GearmanClient $gearmanClient
-     * @param SerializerInterface $serializer
      * @param string $encoding
      * @param string $workerEnvironment
      * @param JobRegistry $jobRegistry
@@ -90,7 +89,6 @@ class AsyncMiddleware implements Middleware
      */
     public function __construct(
         GearmanClient $gearmanClient,
-        SerializerInterface $serializer,
         string $encoding,
         string $workerEnvironment,
         JobRegistry $jobRegistry,
@@ -104,11 +102,6 @@ class AsyncMiddleware implements Middleware
         $this->gearmanClient = $gearmanClient;
         $this->jobRegistry = $jobRegistry;
         $this->logger = $logger;
-        $this->serializer = $serializer;
-
-        if (!$serializer->supportsEncoding($encoding)) {
-            throw new UnsupportedException('Not supported encoding: '. $encoding);
-        }
 
         $this->encoding = $encoding;
         $this->dispatcher = $dispatcher;
@@ -116,6 +109,15 @@ class AsyncMiddleware implements Middleware
         $this->kernel = $kernel;
         $this->doctrine = $doctrine;
         $this->tokenStorage = $tokenStorage;
+    }
+
+    public function setSerializer(SerializerInterface $serializer)
+    {
+        if (!$serializer->supportsEncoding($this->encoding)) {
+            throw new UnsupportedException('Not supported encoding: '. $encoding);
+        }
+
+        $this->serializer = $serializer;
     }
 
     public function setProfileLogger(ProfileLogger $profileLogger)

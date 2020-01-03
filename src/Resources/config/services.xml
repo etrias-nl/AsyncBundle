@@ -16,6 +16,9 @@
 
         <service id="Etrias\AsyncBundle\Middleware\AsyncMiddleware">
             <argument type="service" id="gearman"/>
+            <call method="setSerializer">
+                <argument type="service" id="serializer"/>
+            </call>
             <tag name="monolog.logger" channel="async"/>
         </service>
 

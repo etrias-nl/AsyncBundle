@@ -44,8 +44,8 @@ class EtriasAsyncExtension extends ConfigurableExtension
         $ymlFileLoader->load('parameters.yml');
 
         $cacheMiddleware = $container->getDefinition(AsyncMiddleware::class);
-        $cacheMiddleware->setArgument(2, $mergedConfig['encoding']);
-        $cacheMiddleware->setArgument(3, $mergedConfig['worker_environment']);
+        $cacheMiddleware->setArgument('$encoding', $mergedConfig['encoding']);
+        $cacheMiddleware->setArgument('$workerEnvironment', $mergedConfig['worker_environment']);
 
         $profiling = $mergedConfig['profiling'] ?? $container->getParameter('kernel.debug');
 
