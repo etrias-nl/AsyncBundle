@@ -194,7 +194,11 @@ class CommandBusWorker implements GearmanOutputAwareInterface
         $commandReflection = new ReflectionClass($command);
 
         foreach ($commandReflection->getProperties() as $property) {
-            $value = $this->propertyAccessor->getValue($command, $property->getName());
+            if (!$this->propertyAccessor->isReadable($command, $property->getName())) {
+                $value = null;
+            } else {
+                $value = $this->propertyAccessor->getValue($command, $property->getName());
+            }
 
             if (!is_object($value)) {
                 continue;
