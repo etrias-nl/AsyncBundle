@@ -73,7 +73,8 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
      */
     protected $profileLogger;
 
-
+    /** @var bool */
+    private $isExecuting = false;
 
     /**
      * AsyncMiddleware constructor.
@@ -135,8 +136,16 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
     public function execute($command, callable $next)
     {
         if ($this->kernel->getEnvironment() === $this->workerEnvironment) {
-            return $next($command);
+            if (!$this->isExecuting) {
+                $this->isExecuting = true;
+
+                $returnValue = $next($command);
+                $this->isExecuting = false;
+
+                return $returnValue;
+            }
         }
+
 
         if ($command instanceof WrappedCommandInterface) {
             $innerCommand = $command->getCommand();
