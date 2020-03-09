@@ -48,11 +48,11 @@ class UserDecorateMiddleware implements Middleware
         $token = $this->tokenStorage->getToken();
 
         if ($token && $user = $token->getUser()) {
-            if (method_exists($user, 'getId')) {
+            if ($this->userResolver !== null) {
+                $userId = $this->userResolver->toUserId($user);
+            } elseif (method_exists($user, 'getId')) {
                 @trigger_error('Implicitly using "'.get_class($user).'::getId()" is deprecated, provide a "UserResolverInterface" service instead.', E_USER_DEPRECATED);
                 $userId = $user->getId();
-            } elseif ($this->userResolver !== null) {
-                $userId = $this->userResolver->toUserId($user);
             } else {
                 throw new \Exception('Unable to obtain user ID from "'.get_class($user).'" without a "UserResolverInterface" service.');
             }

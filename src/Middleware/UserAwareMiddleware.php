@@ -68,11 +68,12 @@ class UserAwareMiddleware implements Middleware
             }
 
             $innerCommand = $command->getCommand();
+            if ($user) {
+                $token = new CommandBusToken([]);
+                $token->setUser($user);
 
-            $token = new CommandBusToken([]);
-            $token->setUser($user);
-
-            $this->tokenStorage->setToken($token);
+                $this->tokenStorage->setToken($token);
+            }
         }
 
         $result = $next($innerCommand);
