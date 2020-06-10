@@ -141,7 +141,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
             $innerCommand = $command;
         }
 
-        $forceAsync = $innerCommand instanceof AsyncableCommandInterface ? $innerCommand->getAsync() : false;
+        $forceAsync = $innerCommand instanceof AsyncableCommandInterface ? $innerCommand->getAsync() : null;
 
         if ($this->kernel->getEnvironment() === $this->workerEnvironment) {
             if (!$this->isExecuting && $forceAsync !== true) {
