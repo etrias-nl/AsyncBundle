@@ -135,8 +135,16 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
      */
     public function execute($command, callable $next)
     {
+        if ($command instanceof WrappedCommandInterface) {
+            $innerCommand = $command->getCommand();
+        } else {
+            $innerCommand = $command;
+        }
+
+        $forceAsync = $innerCommand instanceof AsyncableCommandInterface ? $innerCommand->getAsync() : null;
+
         if ($this->kernel->getEnvironment() === $this->workerEnvironment) {
-            if (!$this->isExecuting) {
+            if (!$this->isExecuting && $forceAsync !== true) {
                 $this->isExecuting = true;
 
                 $returnValue = $next($command);
@@ -146,12 +154,6 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
             }
         }
 
-
-        if ($command instanceof WrappedCommandInterface) {
-            $innerCommand = $command->getCommand();
-        } else {
-            $innerCommand = $command;
-        }
 
         try {
             $commandClassName = $this->getNameForCommand($innerCommand);
@@ -165,7 +167,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
             return $next($command);
         }
 
-        if ($innerCommand instanceof AsyncableCommandInterface && $innerCommand->isAsync() === false) {
+        if ($forceAsync === false) {
             $this->logger->debug('Async is overruled by command', ['command' => $commandClassName]);
 
             return $next($innerCommand);
