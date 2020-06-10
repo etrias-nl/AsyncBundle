@@ -8,22 +8,22 @@ namespace Etrias\AsyncBundle\Command;
 
 trait AsyncableCommandTrait
 {
-    /** @var bool */
-    protected $async = true;
+    /** @var bool|null */
+    protected $async = null;
 
     /**
-     * @return bool
+     * @return bool|null
      */
-    public function isAsync(): bool
+    public function getAsync(): ?bool
     {
         return $this->async;
     }
 
     /**
-     * @param bool $async
+     * @param bool|null $async
      * @return object
      */
-    public function setAsync(bool $async): self
+    public function setAsync(?bool $async): self
     {
         $this->async = $async;
 

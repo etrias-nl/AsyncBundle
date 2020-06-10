@@ -13,5 +13,5 @@ interface AsyncableCommandInterface extends CommandInterface
     /**
      * @return bool
      */
-    public function isAsync(): bool;
+    public function getAsync(): ?bool;
 }
