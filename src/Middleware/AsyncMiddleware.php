@@ -177,6 +177,9 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
         $jobName = $jobConfig['realCallableNameNoPrefix'];
         $jobMethod = $jobConfig['defaultMethod'] . 'Job';
 
+        if ($forceAsync === true) {
+            $innerCommand->setAsync(false);
+        }
 
         $params = $this->serializer->encode([
             'command' => $command
