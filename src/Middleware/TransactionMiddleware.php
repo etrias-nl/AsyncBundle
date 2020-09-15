@@ -2,6 +2,8 @@
 namespace Etrias\AsyncBundle\Middleware;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Event\PostFlushEventArgs;
+use Doctrine\ORM\Events;
 use League\Tactician\Middleware;
 use Exception;
 use Throwable;
@@ -51,6 +53,10 @@ class TransactionMiddleware implements Middleware
 
             $this->entityManager->flush();
             $this->entityManager->commit();
+
+            // @fixme; define event class, move out async-bundle (e.g. doctrine-utils)
+            $this->entityManager->getEventManager()->dispatchEvent('postCommit', new PostFlushEventArgs($this->entityManager));
+
             $this->entityManager->clear();
         } catch (Exception $e) {
             $this->rollbackTransaction();
