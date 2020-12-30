@@ -46,7 +46,7 @@ class JmsFormatter implements Formatter
 
         $logger->log(
             LogLevel::INFO,
-            sprintf('Command received: %s:%s', get_class($workingCommand), $commandHash),
+            sprintf('Command received: %s:%s', \get_class($workingCommand), $commandHash),
             ['command' => $context]
         );
     }
@@ -66,7 +66,7 @@ class JmsFormatter implements Formatter
 
         $logger->log(
             LogLevel::INFO,
-            sprintf('Command succeeded: %s:%s', get_class($workingCommand), $commandHash)
+            sprintf('Command succeeded: %s:%s', \get_class($workingCommand), $commandHash)
         );
     }
 
@@ -84,7 +84,7 @@ class JmsFormatter implements Formatter
         $commandHash = $this->getCommandHash($command);
         $logger->log(
             LogLevel::ERROR,
-            sprintf('Command failed: %s:%s', get_class($workingCommand), $commandHash),
+            sprintf('Command failed: %s:%s', \get_class($workingCommand), $commandHash),
             ['exception' => $e]
         );
     }

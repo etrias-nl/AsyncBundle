@@ -130,7 +130,7 @@ class CommandBusWorker implements GearmanOutputAwareInterface
         } catch (\Error | \Exception $exception) {
             $this->output->writeln(sprintf('<error>Error handling job</error> %s <comment>%s</comment>', $job->functionName(), $job->handle()));
             if ($this->output->isVeryVerbose()) {
-                $this->output->write(sprintf('%s (%s)', $exception->getMessage(), get_class($exception)));
+                $this->output->write(sprintf('%s (%s)', $exception->getMessage(), \get_class($exception)));
             }
 
             $this->logger->critical($exception);
@@ -204,7 +204,7 @@ class CommandBusWorker implements GearmanOutputAwareInterface
                 continue;
             }
 
-            $className = get_class($value);
+            $className = \get_class($value);
             if ($entityManager = $this->doctrine->getManagerForClass($className)) {
 
                 $identifierValues = $entityManager->getClassMetadata($className)->getIdentifierValues($value);

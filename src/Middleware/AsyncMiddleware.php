@@ -158,7 +158,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
         try {
             $commandClassName = $this->getNameForCommand($innerCommand);
         } catch (\InvalidArgumentException $e) {
-            $commandClassName = get_class($innerCommand);
+            $commandClassName = \get_class($innerCommand);
         }
 
         if (!$this->jobRegistry->hasConfig($commandClassName)) {
@@ -228,12 +228,12 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
 
     protected function getNameForCommand($command)
     {
-        $className = get_class($command);
+        $className = \get_class($command);
         foreach ($this->kernel->getBundles() as $name => $bundle) {
             if (0 !== strpos($className, $bundle->getNamespace().'\Command')) {
                 continue;
             }
-            return $name . ':' . class_basename($command);
+            return $name . ':' . \class_basename($command);
         }
         throw new \InvalidArgumentException(sprintf('Unable to find a bundle that defines command "%s".', $className));
     }
@@ -263,7 +263,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
 
         foreach ($commandReflection->getProperties() as $property) {
             $value = $propertyAccessor->getValue($command, $property->getName());
-            $entityManager = $this->doctrine->getManagerForClass(get_class($value));
+            $entityManager = $this->doctrine->getManagerForClass(\get_class($value));
             $entityManager->detach($value);
 
             $property->setValue($value);

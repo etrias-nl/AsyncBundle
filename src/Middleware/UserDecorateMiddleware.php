@@ -51,10 +51,10 @@ class UserDecorateMiddleware implements Middleware
             if ($this->userResolver !== null) {
                 $userId = $this->userResolver->toUserId($user);
             } elseif (method_exists($user, 'getId')) {
-                @trigger_error('Implicitly using "'.get_class($user).'::getId()" is deprecated, provide a "UserResolverInterface" service instead.', E_USER_DEPRECATED);
+                @trigger_error('Implicitly using "'.\get_class($user).'::getId()" is deprecated, provide a "UserResolverInterface" service instead.', E_USER_DEPRECATED);
                 $userId = $user->getId();
             } else {
-                throw new \Exception('Unable to obtain user ID from "'.get_class($user).'" without a "UserResolverInterface" service.');
+                throw new \Exception('Unable to obtain user ID from "'.\get_class($user).'" without a "UserResolverInterface" service.');
             }
 
             $command = new UserAwareCommandWrapper($command, $userId);

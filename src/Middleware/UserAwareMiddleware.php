@@ -60,7 +60,7 @@ class UserAwareMiddleware implements Middleware
                 }
 
                 @trigger_error('Resolving users using a built-in EntityRepository is deprecated, provide a "UserResolverInterface" service instead.', E_USER_DEPRECATED);
-                if (is_array($userId)) {
+                if (\is_array($userId)) {
                     $user = $this->userRepository->findOneBy($userId);
                 } else {
                     $user = $this->userRepository->find($userId);

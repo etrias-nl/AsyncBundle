@@ -16,9 +16,9 @@ class ClassNameExtractor implements CommandNameExtractor
     public function extract($command)
     {
         if ($command instanceof WrappedCommandInterface) {
-            return get_class($command->getCommand());
+            return \get_class($command->getCommand());
         }
 
-        return get_class($command);
+        return \get_class($command);
     }
 }
