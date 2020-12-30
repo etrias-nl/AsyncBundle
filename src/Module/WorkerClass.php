@@ -1,8 +1,8 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Etrias\AsyncBundle\Module;
-
 
 use Doctrine\Common\Annotations\Reader;
 use Mmoreram\GearmanBundle\Driver\Gearman\Work as WorkAnnotation;
@@ -11,7 +11,7 @@ use Mmoreram\GearmanBundle\Module\WorkerClass as MmoreramWorkerClass;
 use ReflectionClass;
 
 /**
- * Job class
+ * Job class.
  *
  * This class provide all worker definition.
  *
@@ -38,16 +38,13 @@ class WorkerClass extends MmoreramWorkerClass
         $this->jobCollection = new JobCollection();
     }
 
-    /**
-     * @return JobCollection
-     */
     public function getJobCollection(): JobCollection
     {
         return $this->jobCollection;
     }
 
     /**
-     * Retrieve all Worker data in cache format
+     * Retrieve all Worker data in cache format.
      *
      * @return array
      */
@@ -58,5 +55,4 @@ class WorkerClass extends MmoreramWorkerClass
 
         return $array;
     }
-
 }

@@ -1,8 +1,6 @@
 <?php
 
-$header = <<<'EOF'
-This file is part of PHP CS Fixer.
-EOF;
+$header = '';
 
 return PhpCsFixer\Config::create()
     ->setRiskyAllowed(true)

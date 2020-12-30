@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Etrias\AsyncBundle\Module;
 
 use Etrias\AsyncBundle\Exceptions\WorkerNotFoundException;
 use Etrias\AsyncBundle\Module\WorkerClass as Worker;
 
 /**
- * WorkerCollection class
+ * WorkerCollection class.
  *
  * @since 2.3.1
  */
 class WorkerCollection
 {
     /**
-     * All Workers
+     * All Workers.
      *
      * @var Worker[]
      */
-    protected $workerClasses = array();
+    protected $workerClasses = [];
 
     /**
      * Adds a Worker into $workerClasses
-     * Return self object
+     * Return self object.
      *
      * @param $name
      * @param Worker $workerClass Worker element to add
@@ -36,13 +38,13 @@ class WorkerCollection
     }
 
     /**
-     * Retrieve all workers loaded previously in cache format
+     * Retrieve all workers loaded previously in cache format.
      *
      * @return array
      */
     public function toArray()
     {
-        $workersDumped = array();
+        $workersDumped = [];
 
         foreach ($this->workerClasses as $worker) {
             $workersDumped[] = $worker->toArray();
@@ -62,7 +64,6 @@ class WorkerCollection
     public function getWorkerByName(string $workerName)
     {
         if (isset($this->workerClasses[$workerName])) {
-
             return $this->workerClasses[$workerName];
         }
 

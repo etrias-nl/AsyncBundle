@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Middleware;
 
 use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
@@ -26,18 +25,17 @@ class UserDecorateMiddleware implements Middleware
     public function __construct(
         TokenStorageInterface $tokenStorage,
         UserResolverInterface $userResolver = null
-    )
-    {
+    ) {
         $this->tokenStorage = $tokenStorage;
         $this->userResolver = $userResolver;
     }
 
     /**
      * @param object $command
-     * @param callable $next
+     *
+     * @throws \Doctrine\ORM\ORMException
      *
      * @return mixed
-     * @throws \Doctrine\ORM\ORMException
      */
     public function execute($command, callable $next)
     {
@@ -48,7 +46,7 @@ class UserDecorateMiddleware implements Middleware
         $token = $this->tokenStorage->getToken();
 
         if ($token && $user = $token->getUser()) {
-            if ($this->userResolver !== null) {
+            if (null !== $this->userResolver) {
                 $userId = $this->userResolver->toUserId($user);
             } elseif (method_exists($user, 'getId')) {
                 @trigger_error('Implicitly using "'.\get_class($user).'::getId()" is deprecated, provide a "UserResolverInterface" service instead.', E_USER_DEPRECATED);

@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Service;
-
 
 use Doctrine\Common\Annotations\Reader;
 use Etrias\AsyncBundle\Module\JobClass;
@@ -29,12 +27,12 @@ class GearmanParser extends MmoreramGearmanParser
     protected $kernel;
 
     /**
-     * @{inheritdoc}
+     * {@inheritdoc}
      */
     protected $servers;
 
     /**
-     * @{inheritdoc}
+     * {@inheritdoc}
      */
     protected $defaultSettings;
     /**
@@ -60,8 +58,7 @@ class GearmanParser extends MmoreramGearmanParser
         array $resources,
         array $servers,
         array $defaultSettings
-    )
-    {
+    ) {
         parent::__construct($kernel, $reader, $finder, $bundles, $resources, $servers, $defaultSettings);
         $this->servers = $servers;
         $this->kernel = $kernel;
@@ -72,17 +69,15 @@ class GearmanParser extends MmoreramGearmanParser
         $this->jobRegistry = $kernel->getContainer()->get(JobRegistry::class);
     }
 
-    function parseNamespaceMap(
+    public function parseNamespaceMap(
         Finder $finder,
         Reader $reader,
         array $paths,
         array $excludedPaths
     ) {
-
         //* Do not call parent, because code is not extendable nor injectable :(
 
         $workerCollection = new WorkerCollection();
-
 
         foreach ($this->workerAnnotationRegistry->getAllAnnotations() as $name => $annotation) {
             $reflectionClass = new ReflectionClass(CommandBusWorker::class);
@@ -93,7 +88,6 @@ class GearmanParser extends MmoreramGearmanParser
         }
 
         foreach ($this->jobRegistry->getAllConfigs() as $config) {
-
             $worker = $workerCollection->getWorkerByName($config->getWorkerName());
             $workerProperties = $worker->toArray();
             $jobCollection = $worker->getJobCollection();
@@ -105,15 +99,10 @@ class GearmanParser extends MmoreramGearmanParser
             $jobCollection->add($job);
         }
 
-
-
-
         return $workerCollection;
-
     }
 
     /**
-     * @param array $defaultSettings
      * @return array
      */
     protected function normalizeDefaultSettings(array $defaultSettings)

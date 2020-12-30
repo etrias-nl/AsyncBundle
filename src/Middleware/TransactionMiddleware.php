@@ -1,15 +1,17 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Etrias\AsyncBundle\Middleware;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostFlushEventArgs;
-use Doctrine\ORM\Events;
-use League\Tactician\Middleware;
 use Exception;
+use League\Tactician\Middleware;
 use Throwable;
 
 /**
- * Wraps command execution inside a Doctrine ORM transaction
+ * Wraps command execution inside a Doctrine ORM transaction.
  */
 class TransactionMiddleware implements Middleware
 {
@@ -23,22 +25,20 @@ class TransactionMiddleware implements Middleware
      */
     private $isExecuting = false;
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     */
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
     }
 
     /**
-     * Executes the given command and optionally returns a value
+     * Executes the given command and optionally returns a value.
      *
      * @param object $command
-     * @param callable $next
-     * @return mixed
+     *
      * @throws Throwable
      * @throws Exception
+     *
+     * @return mixed
      */
     public function execute($command, callable $next)
     {
@@ -69,13 +69,14 @@ class TransactionMiddleware implements Middleware
         }
 
         $this->isExecuting = false;
+
         return $returnValue;
     }
 
     /**
      * Rollback the current transaction and close the entity manager when possible.
      */
-    protected function rollbackTransaction()
+    protected function rollbackTransaction(): void
     {
         $this->entityManager->rollback();
 

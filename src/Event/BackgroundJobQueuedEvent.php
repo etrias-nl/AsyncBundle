@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Event;
-
 
 use Symfony\Component\EventDispatcher\Event;
 
@@ -42,17 +40,11 @@ class BackgroundJobQueuedEvent extends Event
         return $this->command;
     }
 
-    /**
-     * @return string
-     */
     public function getHandle(): string
     {
         return $this->handle;
     }
 
-    /**
-     * @return string
-     */
     public function getJobMethod(): string
     {
         return $this->jobMethod;

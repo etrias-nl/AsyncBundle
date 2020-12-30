@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Middleware;
 
 use Doctrine\ORM\EntityRepository;
@@ -33,8 +32,7 @@ class UserAwareMiddleware implements Middleware
         ?EntityRepository $userRepository,
         TokenStorageInterface $tokenStorage,
         UserResolverInterface $userResolver = null
-    )
-    {
+    ) {
         $this->userRepository = $userRepository;
         $this->tokenStorage = $tokenStorage;
         $this->userResolver = $userResolver;
@@ -42,20 +40,20 @@ class UserAwareMiddleware implements Middleware
 
     /**
      * @param object $command
-     * @param callable $next
+     *
+     * @throws \Doctrine\ORM\ORMException
      *
      * @return mixed
-     * @throws \Doctrine\ORM\ORMException
      */
     public function execute($command, callable $next)
     {
         $innerCommand = $command;
         if ($command instanceof UserAwareCommandWrapper) {
             $userId = $command->getUserId();
-            if ($this->userResolver !== null) {
+            if (null !== $this->userResolver) {
                 $user = $this->userResolver->fromUserId($userId);
             } else {
-                if ($this->userRepository === null) {
+                if (null === $this->userRepository) {
                     throw new \Exception('Resolving users without a "UserResolverInterface" requires an entity repository.');
                 }
 

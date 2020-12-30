@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Logger\Formatter;
-
 
 use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
 use Etrias\CqrsBundle\Command\QueryInterface;
@@ -22,7 +20,6 @@ class JmsFormatter implements Formatter
 
     /**
      * JmsFormatter constructor.
-     * @param SerializerInterface $serializer
      */
     public function __construct(SerializerInterface $serializer)
     {
@@ -30,9 +27,9 @@ class JmsFormatter implements Formatter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function logCommandReceived(LoggerInterface $logger, $command)
+    public function logCommandReceived(LoggerInterface $logger, $command): void
     {
         $workingCommand = $this->getWorkingCommand($command);
 
@@ -52,9 +49,9 @@ class JmsFormatter implements Formatter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function logCommandSucceeded(LoggerInterface $logger, $command, $returnValue)
+    public function logCommandSucceeded(LoggerInterface $logger, $command, $returnValue): void
     {
         $workingCommand = $this->getWorkingCommand($command);
 
@@ -71,9 +68,9 @@ class JmsFormatter implements Formatter
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function logCommandFailed(LoggerInterface $logger, $command, Exception $e)
+    public function logCommandFailed(LoggerInterface $logger, $command, Exception $e): void
     {
         $workingCommand = $this->getWorkingCommand($command);
 
@@ -91,6 +88,7 @@ class JmsFormatter implements Formatter
 
     /**
      * @param object $command
+     *
      * @return object
      */
     protected function getWorkingCommand($command)
@@ -104,6 +102,7 @@ class JmsFormatter implements Formatter
 
     /**
      * @param object $command
+     *
      * @return string
      */
     protected function getCommandHash($command)

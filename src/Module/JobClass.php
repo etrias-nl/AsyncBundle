@@ -1,13 +1,13 @@
 <?php
 
+declare(strict_types=1);
 
 namespace Etrias\AsyncBundle\Module;
-
 
 use Mmoreram\GearmanBundle\Module\JobClass as MmoreramJobClass;
 
 /**
- * Job class
+ * Job class.
  *
  * This class provide all worker definition.
  *
@@ -15,5 +15,4 @@ use Mmoreram\GearmanBundle\Module\JobClass as MmoreramJobClass;
  */
 class JobClass extends MmoreramJobClass
 {
-
 }

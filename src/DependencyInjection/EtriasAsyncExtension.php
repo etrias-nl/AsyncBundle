@@ -10,6 +10,8 @@ use Etrias\AsyncBundle\Module\JobConfig;
 use Etrias\AsyncBundle\Registry\JobRegistry;
 use Etrias\AsyncBundle\Registry\WorkerAnnotationRegistry;
 use Etrias\AsyncBundle\Workers\CommandBusWorker;
+use Mmoreram\GearmanBundle\Driver\Gearman\Job as JobAnnotation;
+use Mmoreram\GearmanBundle\Driver\Gearman\Work as WorkAnnotation;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -17,18 +19,15 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
-use Mmoreram\GearmanBundle\Driver\Gearman\Work as WorkAnnotation;
-use Mmoreram\GearmanBundle\Driver\Gearman\Job as JobAnnotation;
 
 class EtriasAsyncExtension extends ConfigurableExtension
 {
     /**
      * Configures the passed container according to the merged configuration.
-     * @param array $mergedConfig
-     * @param ContainerBuilder $container
+     *
      * @throws \Exception
      */
-    protected function loadInternal(array $mergedConfig, ContainerBuilder $container)
+    protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
         $xmlFileLoader = new XmlFileLoader(
             $container,
@@ -49,7 +48,7 @@ class EtriasAsyncExtension extends ConfigurableExtension
 
         $profiling = $mergedConfig['profiling'] ?? $container->getParameter('kernel.debug');
 
-        if ($profiling === true ) {
+        if (true === $profiling) {
             $cacheMiddleware->addMethodCall('setProfileLogger', [new Reference('etrias_async.profile_logger')]);
         } else {
             $container->removeDefinition('etrias_async.profile_logger');
@@ -59,15 +58,10 @@ class EtriasAsyncExtension extends ConfigurableExtension
         $this->processWorkerConfig($mergedConfig, $container);
         $this->processJobConfig($mergedConfig, $container);
         $this->processCheckConfig($mergedConfig, $container);
-
-
     }
 
-    /**
-     * @param array $config
-     * @param ContainerBuilder $container
-     */
-    protected function processWorkerConfig(array $config, ContainerBuilder $container) {
+    protected function processWorkerConfig(array $config, ContainerBuilder $container): void
+    {
         $worker = $container->getDefinition(CommandBusWorker::class);
         $worker->setArgument(2, $config['encoding']);
 
@@ -78,7 +72,6 @@ class EtriasAsyncExtension extends ConfigurableExtension
             $gearmanDescriber->setArgument(1, $config['worker_environment']);
         }
 
-
         foreach ($config['workers'] as $name => $worker) {
             $workAnnotation = new Definition(WorkAnnotation::class, [
                 [
@@ -88,8 +81,8 @@ class EtriasAsyncExtension extends ConfigurableExtension
                     'minimumExecutionTime' => $worker['minimum_execution_time'],
                     'timeout' => $worker['timeout'],
                     'defaultMethod' => $worker['gearman_method'],
-                    'service' => CommandBusWorker::class
-                ]
+                    'service' => CommandBusWorker::class,
+                ],
             ]);
 
             $checkConfig = [
@@ -101,11 +94,8 @@ class EtriasAsyncExtension extends ConfigurableExtension
         }
     }
 
-    /**
-     * @param array $config
-     * @param ContainerBuilder $container
-     */
-    protected function processJobConfig(array $config, ContainerBuilder $container) {
+    protected function processJobConfig(array $config, ContainerBuilder $container): void
+    {
         $jobRegistry = $container->getDefinition(JobRegistry::class);
         foreach ($config['commands'] as $name => $command) {
             $jobAnnotation = new Definition(JobAnnotation::class, [
@@ -116,12 +106,12 @@ class EtriasAsyncExtension extends ConfigurableExtension
                     'minimumExecutionTime' => $command['minimum_execution_time'],
                     'timeout' => $command['timeout'],
                     'defaultMethod' => $command['gearman_method'],
-                ]
+                ],
             ]);
 
             $jobConfig = new Definition(JobConfig::class, [
                 $command['worker'],
-                $jobAnnotation
+                $jobAnnotation,
             ]);
 
             $checkConfig = [
@@ -132,11 +122,8 @@ class EtriasAsyncExtension extends ConfigurableExtension
         }
     }
 
-    /**
-     * @param array $config
-     * @param ContainerBuilder $container
-     */
-    protected function processCheckConfig(array $config, ContainerBuilder $container) {
+    protected function processCheckConfig(array $config, ContainerBuilder $container): void
+    {
         if ($container->hasDefinition(GearmanCheck::class)) {
             $definition = $container->getDefinition(GearmanCheck::class);
             $definition->setArgument(0, $config['check']['min_workers']);

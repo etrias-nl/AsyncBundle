@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\DataCollector;
-
 
 use Etrias\AsyncBundle\Logger\ProfileLogger;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,14 +10,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 
-
 class CommandCollector extends DataCollector implements LateDataCollectorInterface
 {
     /**
      * @var ProfileLogger
      */
     private $logger;
-
 
     public function __construct(ProfileLogger $logger)
     {
@@ -29,18 +25,17 @@ class CommandCollector extends DataCollector implements LateDataCollectorInterfa
     /**
      * Collects data for the given Request and Response.
      */
-    public function collect(Request $request, Response $response, \Exception $exception = null)
+    public function collect(Request $request, Response $response, \Exception $exception = null): void
     {
     }
 
-    public function lateCollect()
+    public function lateCollect(): void
     {
         $this->data['commands'] = $this->logger->getCommands();
 
-        $this->data['time_spent'] = array_sum(array_map(function($command) {
+        $this->data['time_spent'] = array_sum(array_map(function ($command) {
             return $command['executionMS'];
         }, $this->data['commands']));
-
     }
 
     /**
@@ -53,22 +48,16 @@ class CommandCollector extends DataCollector implements LateDataCollectorInterfa
         return 'etrias_async.command_collector';
     }
 
-    public function reset()
+    public function reset(): void
     {
         $this->data['commands'] = [];
     }
 
-    /**
-     * @return array
-     */
     public function getCommands(): array
     {
         return $this->data['commands'] ?? [];
     }
 
-    /**
-     * @return array
-     */
     public function getGroupedCommands(): array
     {
         $commands = [];

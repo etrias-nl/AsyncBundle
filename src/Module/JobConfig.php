@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Module;
 
 use Mmoreram\GearmanBundle\Driver\Gearman\Job as JobAnnotation;
 
 class JobConfig
 {
-
     /**
      * @var string
      */
@@ -25,21 +23,13 @@ class JobConfig
         $this->annotation = $annotation;
     }
 
-    /**
-     * @return string
-     */
     public function getWorkerName(): string
     {
         return $this->workerName;
     }
 
-    /**
-     * @return JobAnnotation
-     */
     public function getAnnotation(): JobAnnotation
     {
         return $this->annotation;
     }
-
-
 }

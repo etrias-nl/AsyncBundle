@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Command;
-
 
 use Etrias\CqrsBundle\Command\CommandInterface;
 

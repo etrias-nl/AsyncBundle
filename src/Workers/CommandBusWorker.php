@@ -1,7 +1,8 @@
 <?php
 
-namespace Etrias\AsyncBundle\Workers;
+declare(strict_types=1);
 
+namespace Etrias\AsyncBundle\Workers;
 
 use Doctrine\Common\Persistence\ManagerRegistry;
 use Etrias\AsyncBundle\Event\BackgroundJobHandledEvent;
@@ -68,14 +69,6 @@ class CommandBusWorker implements GearmanOutputAwareInterface
 
     /**
      * CommandBusWorker constructor.
-     * @param GearmanClient $gearmanClient
-     * @param SerializerInterface $serializer
-     * @param string $encoding
-     * @param CommandBus $commandBus
-     * @param EventDispatcherInterface $dispatcher
-     * @param JobRegistry $jobRegistry
-     * @param LoggerInterface $logger
-     * @param ManagerRegistry|null $doctrine
      */
     public function __construct(
         GearmanClient $gearmanClient,
@@ -86,13 +79,12 @@ class CommandBusWorker implements GearmanOutputAwareInterface
         JobRegistry $jobRegistry,
         LoggerInterface $logger,
         ManagerRegistry $doctrine = null
-    )
-    {
+    ) {
         $this->gearmanClient = $gearmanClient;
         $this->serializer = $serializer;
 
         if (!$serializer->supportsDecoding($encoding)) {
-            throw new UnsupportedException('Not supported encoding: '. $encoding);
+            throw new UnsupportedException('Not supported encoding: '.$encoding);
         }
         $this->encoding = $encoding;
         $this->commandBus = $commandBus;
@@ -117,16 +109,12 @@ class CommandBusWorker implements GearmanOutputAwareInterface
 
             $this->output->writeln(sprintf('<info>Finish handling job</info> %s <comment>%s</comment>', $job->functionName(), $job->handle()));
 
-
             if ($this->isBackgroundJob($context)) {
                 $event = new BackgroundJobHandledEvent($job->handle(), $workload, $result);
                 $this->dispatcher->dispatch(BackgroundJobHandledEvent::NAME, $event);
-
             } else {
-
                 return $result;
             }
-
         } catch (\Error | \Exception $exception) {
             $this->output->writeln(sprintf('<error>Error handling job</error> %s <comment>%s</comment>', $job->functionName(), $job->handle()));
             if ($this->output->isVeryVerbose()) {
@@ -134,7 +122,6 @@ class CommandBusWorker implements GearmanOutputAwareInterface
             }
 
             $this->logger->critical($exception);
-
 
             $job->sendException($exception->getMessage());
 
@@ -147,7 +134,14 @@ class CommandBusWorker implements GearmanOutputAwareInterface
     }
 
     /**
-     * @param array $context
+     * Set the output.
+     */
+    public function setOutput(OutputInterface $output): void
+    {
+        $this->output = $output;
+    }
+
+    /**
      * @return bool
      */
     protected function isBackgroundJob(array $context)
@@ -156,34 +150,24 @@ class CommandBusWorker implements GearmanOutputAwareInterface
 
         $method = $jobConfig['defaultMethod'];
 
-        return strpos(strtolower($method), 'background') !== false;
+        return false !== strpos(strtolower($method), 'background');
     }
 
-    protected function getJobNameWithoutPrefix(string $functionName, array $context) {
-        $jobConfigs = array_filter($context['jobs'], function($jobConfig) use ($functionName) {
+    protected function getJobNameWithoutPrefix(string $functionName, array $context)
+    {
+        $jobConfigs = array_filter($context['jobs'], function ($jobConfig) use ($functionName) {
             return $jobConfig['realCallableName'] === $functionName;
         });
 
         $jobConfig = reset($jobConfigs);
 
         return $jobConfig['realCallableNameNoPrefix'];
-
     }
 
     /**
-     * Set the output
-     *
-     * @param OutputInterface $output
-     */
-    public function setOutput(OutputInterface $output)
-    {
-        $this->output = $output;
-    }
-
-    /**
-     * @param object $command
-     * @return object
      * @throws \ReflectionException
+     *
+     * @return object
      */
     protected function mergeEntities(object $command)
     {
@@ -200,13 +184,12 @@ class CommandBusWorker implements GearmanOutputAwareInterface
                 $value = $this->propertyAccessor->getValue($command, $property->getName());
             }
 
-            if (!is_object($value)) {
+            if (!\is_object($value)) {
                 continue;
             }
 
             $className = \get_class($value);
             if ($entityManager = $this->doctrine->getManagerForClass($className)) {
-
                 $identifierValues = $entityManager->getClassMetadata($className)->getIdentifierValues($value);
                 $this->propertyAccessor->setValue($command, $property->getName(), $entityManager->getRepository($className)->find($identifierValues));
             }

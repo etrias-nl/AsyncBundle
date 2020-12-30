@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Service;
-
 
 use Net_Gearman_Manager;
 
@@ -21,10 +19,12 @@ class GearmanManager
     }
 
     /**
-     * @return array
      * @throws \Net_Gearman_Exception
+     *
+     * @return array
      */
-    public function getStatus() {
+    public function getStatus()
+    {
         $result = [];
 
         foreach ($this->managers as $name => $manager) {
@@ -35,10 +35,12 @@ class GearmanManager
     }
 
     /**
-     * @return array
      * @throws \Net_Gearman_Exception
+     *
+     * @return array
      */
-    public function getWorkers() {
+    public function getWorkers()
+    {
         $result = [];
 
         foreach ($this->managers as $name => $manager) {
@@ -49,10 +51,12 @@ class GearmanManager
     }
 
     /**
-     * @return array
      * @throws \Net_Gearman_Exception
+     *
+     * @return array
      */
-    public function getVersion() {
+    public function getVersion()
+    {
         $result = [];
 
         foreach ($this->managers as $name => $manager) {
@@ -61,5 +65,4 @@ class GearmanManager
 
         return $result;
     }
-
 }

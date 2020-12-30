@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Check;
-
 
 use Etrias\AsyncBundle\Registry\JobRegistry;
 use Etrias\AsyncBundle\Registry\WorkerAnnotationRegistry;
@@ -48,14 +46,13 @@ class GearmanCheck extends AbstractCheck
     protected $workerRegistry;
 
     public function __construct(
-        int $minWorkers = 1,
-        int $maxJobs = 1,
+        int $minWorkers,
+        int $maxJobs,
         GearmanManager $gearmanManager,
         JobRegistry $jobRegistry,
         GearmanClient $gearmanClient,
         WorkerAnnotationRegistry $workerRegistry
-    )
-    {
+    ) {
         $this->minWorkers = $minWorkers;
         $this->maxJobs = $maxJobs;
         $this->gearmanManager = $gearmanManager;
@@ -65,13 +62,12 @@ class GearmanCheck extends AbstractCheck
     }
 
     /**
-     * Perform the actual check and return a ResultInterface
+     * Perform the actual check and return a ResultInterface.
      *
      * @return ResultInterface
      */
     public function check()
     {
-
         try {
             $overloadedJobs = [];
             $missingWorkers = [];
@@ -84,7 +80,6 @@ class GearmanCheck extends AbstractCheck
             }
 
             foreach ($workers as $worker) {
-
                 $minWorkers = $this->minWorkers;
                 $maxJobs = $this->maxJobs;
 
@@ -100,7 +95,6 @@ class GearmanCheck extends AbstractCheck
                 }
 
                 foreach ($worker['jobs'] as $job) {
-
                     $jobMaxJobs = $maxJobs;
                     $jobName = $job['callableName'];
                     if ($this->jobRegistry->hasCheckConfig($jobName)) {
@@ -120,7 +114,7 @@ class GearmanCheck extends AbstractCheck
                 }
             }
 
-            if (count($overloadedJobs) || count($missingWorkers)) {
+            if (\count($overloadedJobs) || \count($missingWorkers)) {
                 return new Failure(
                     sprintf(
                         'Invalid Gearman Behaviour. Overloaded: %s. Missing Workers: %s',
@@ -129,7 +123,6 @@ class GearmanCheck extends AbstractCheck
                     )
                 );
             }
-
         } catch (\Net_Gearman_Exception $e) {
             return new Failure('Gearman Server is not responding');
         }

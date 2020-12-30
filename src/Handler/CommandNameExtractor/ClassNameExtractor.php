@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Handler\CommandNameExtractor;
 
 use Etrias\AsyncBundle\Command\WrappedCommandInterface;

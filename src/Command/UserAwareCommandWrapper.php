@@ -2,15 +2,12 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Command;
-
 
 use Etrias\CqrsBundle\Command\CommandInterface;
 
 class UserAwareCommandWrapper implements CommandInterface, WrappedCommandInterface
 {
-
     /**
      * @var CommandInterface
      */
@@ -30,19 +27,12 @@ class UserAwareCommandWrapper implements CommandInterface, WrappedCommandInterfa
         $this->userId = $userId;
     }
 
-    /**
-     * @return CommandInterface
-     */
     public function getCommand(): CommandInterface
     {
         return $this->command;
     }
 
-    /**
-     * @param CommandInterface $command
-     * @return UserAwareCommandWrapper
-     */
-    public function setCommand(CommandInterface $command): UserAwareCommandWrapper
+    public function setCommand(CommandInterface $command): self
     {
         $this->command = $command;
 
@@ -59,14 +49,11 @@ class UserAwareCommandWrapper implements CommandInterface, WrappedCommandInterfa
 
     /**
      * @param int|string|int[]|string[] $userId
-     * @return UserAwareCommandWrapper
      */
-    public function setUserId($userId): UserAwareCommandWrapper
+    public function setUserId($userId): self
     {
         $this->userId = $userId;
 
         return $this;
     }
-
-
 }

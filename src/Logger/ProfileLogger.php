@@ -2,10 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Logger;
-
-
 
 class ProfileLogger
 {
@@ -15,7 +12,7 @@ class ProfileLogger
     protected $commands = [];
 
     /**
-     * float
+     * float.
      */
     protected $start;
 
@@ -24,28 +21,24 @@ class ProfileLogger
      */
     protected $currentCommand = 0;
 
-    public function startCommand($command, string $method, $jobConfig)
+    public function startCommand($command, string $method, $jobConfig): void
     {
         $this->start = microtime(true);
         $this->commands[++$this->currentCommand] = [
             'command' => $command,
             'method' => $method,
             'jobConfig' => $jobConfig,
-            'executionMS' => 0
+            'executionMS' => 0,
         ];
     }
 
-    public function stopCommand() {
+    public function stopCommand(): void
+    {
         $this->commands[$this->currentCommand]['executionMS'] = microtime(true) - $this->start;
     }
 
-    /**
-     * @return array
-     */
     public function getCommands(): array
     {
         return $this->commands;
     }
-
-
 }

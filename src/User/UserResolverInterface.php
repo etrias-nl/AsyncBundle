@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Etrias\AsyncBundle\User;
 
 use Etrias\AsyncBundle\Authentication\Token\CommandBusToken;
@@ -15,9 +17,11 @@ interface UserResolverInterface
     public function toUserId($user);
 
     /**
-     * @return string|object
-     *
      * @see CommandBusToken::setUser()
+     *
+     * @param mixed $userId
+     *
+     * @return string|object
      */
     public function fromUserId($userId);
 }

@@ -2,10 +2,6 @@
 
 declare(strict_types=1);
 
-/*
- * This file is part of PHP CS Fixer.
- */
-
 namespace Etrias\AsyncBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -98,12 +94,12 @@ class Configuration implements ConfigurationInterface
                             ->end()
                             ->arrayNode('servers')
                                 ->performNoDeepMerging()
-                                ->defaultValue(array(
-                                    'localhost' =>  array(
-                                        'host'  =>  '127.0.0.1',
-                                        'port'  =>  '4730',
-                                    ),
-                                ))
+                                ->defaultValue([
+                                    'localhost' => [
+                                        'host' => '127.0.0.1',
+                                        'port' => '4730',
+                                    ],
+                                ])
                                 ->prototype('array')
                                     ->children()
                                         ->scalarNode('host')
@@ -157,12 +153,12 @@ class Configuration implements ConfigurationInterface
                             ->end()
                             ->arrayNode('servers')
                                 ->performNoDeepMerging()
-                                ->defaultValue(array(
-                                    'localhost' =>  array(
-                                        'host'  =>  '127.0.0.1',
-                                        'port'  =>  '4730',
-                                    ),
-                                ))
+                                ->defaultValue([
+                                    'localhost' => [
+                                        'host' => '127.0.0.1',
+                                        'port' => '4730',
+                                    ],
+                                ])
                                 ->prototype('array')
                                     ->children()
                                         ->scalarNode('host')

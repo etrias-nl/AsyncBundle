@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-
 namespace Etrias\AsyncBundle\Middleware;
 
-
-use Etrias\AsyncBundle\Command\WrappedCommandInterface;
 use Etrias\AsyncBundle\Command\AsyncableCommandInterface;
+use Etrias\AsyncBundle\Command\WrappedCommandInterface;
 use Etrias\AsyncBundle\Event\BackgroundJobQueuedEvent;
 use Etrias\AsyncBundle\Exceptions\JobNotFoundException;
 use Etrias\AsyncBundle\Logger\ProfileLogger;
@@ -25,7 +23,6 @@ use Symfony\Component\Serializer\Exception\UnsupportedException;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
 use Symfony\Component\Serializer\SerializerInterface;
-
 
 class AsyncMiddleware implements Middleware, SerializerAwareInterface
 {
@@ -78,15 +75,6 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
 
     /**
      * AsyncMiddleware constructor.
-     * @param GearmanClient $gearmanClient
-     * @param string $encoding
-     * @param string $workerEnvironment
-     * @param JobRegistry $jobRegistry
-     * @param EventDispatcherInterface $dispatcher
-     * @param KernelInterface $kernel
-     * @param LoggerInterface $logger
-     * @param TokenStorageInterface $tokenStorage
-     * @param ManagerRegistry|null $doctrine
      */
     public function __construct(
         GearmanClient $gearmanClient,
@@ -98,8 +86,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
         LoggerInterface $logger,
         TokenStorageInterface $tokenStorage,
         ManagerRegistry $doctrine = null
-    )
-    {
+    ) {
         $this->gearmanClient = $gearmanClient;
         $this->jobRegistry = $jobRegistry;
         $this->logger = $logger;
@@ -112,26 +99,26 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
         $this->tokenStorage = $tokenStorage;
     }
 
-    public function setSerializer(SerializerInterface $serializer)
+    public function setSerializer(SerializerInterface $serializer): void
     {
         if (!$serializer->supportsEncoding($this->encoding)) {
-            throw new UnsupportedException('Not supported encoding: '. $encoding);
+            throw new UnsupportedException('Not supported encoding: '.$encoding);
         }
 
         $this->serializer = $serializer;
     }
 
-    public function setProfileLogger(ProfileLogger $profileLogger)
+    public function setProfileLogger(ProfileLogger $profileLogger): void
     {
         $this->profileLogger = $profileLogger;
     }
 
     /**
      * @param object $command
-     * @param callable $next
+     *
+     * @throws JobNotFoundException
      *
      * @return mixed
-     * @throws JobNotFoundException
      */
     public function execute($command, callable $next)
     {
@@ -144,7 +131,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
         $forceAsync = $innerCommand instanceof AsyncableCommandInterface ? $innerCommand->getAsync() : null;
 
         if ($this->kernel->getEnvironment() === $this->workerEnvironment) {
-            if (!$this->isExecuting && $forceAsync !== true) {
+            if (!$this->isExecuting && true !== $forceAsync) {
                 $this->isExecuting = true;
 
                 $returnValue = $next($command);
@@ -153,7 +140,6 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
                 return $returnValue;
             }
         }
-
 
         try {
             $commandClassName = $this->getNameForCommand($innerCommand);
@@ -167,7 +153,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
             return $next($command);
         }
 
-        if ($forceAsync === false) {
+        if (false === $forceAsync) {
             $this->logger->debug('Async is overruled by command', ['command' => $commandClassName]);
 
             return $next($innerCommand);
@@ -175,14 +161,14 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
 
         $jobConfig = $this->getJobConfig($commandClassName);
         $jobName = $jobConfig['realCallableNameNoPrefix'];
-        $jobMethod = $jobConfig['defaultMethod'] . 'Job';
+        $jobMethod = $jobConfig['defaultMethod'].'Job';
 
-        if ($forceAsync === true) {
+        if (true === $forceAsync) {
             $innerCommand->setAsync(false);
         }
 
         $params = $this->serializer->encode([
-            'command' => $command
+            'command' => $command,
         ], $this->encoding);
 
         if ($this->profileLogger) {
@@ -198,19 +184,15 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
         $this->logger->info('Queued command to gearman', [
             'command' => $command,
             'method' => $jobMethod,
-            'encoding' => $this->encoding
+            'encoding' => $this->encoding,
         ]);
-
-
 
         if (!$this->isBackgroundJob($jobMethod)) {
             return $this->serializer->decode($result, $this->encoding);
         }
 
-
         $event = new BackgroundJobQueuedEvent($command, $jobMethod, $result);
         $this->dispatcher->dispatch(BackgroundJobQueuedEvent::NAME, $event);
-
     }
 
     protected function getJobConfig(string $commandClassName)
@@ -233,24 +215,24 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
             if (0 !== strpos($className, $bundle->getNamespace().'\Command')) {
                 continue;
             }
-            return $name . ':' . \class_basename($command);
+
+            return $name.':'.class_basename($command);
         }
         throw new \InvalidArgumentException(sprintf('Unable to find a bundle that defines command "%s".', $className));
     }
 
     /**
-     * @param string $jobMethod
      * @return bool
      */
     protected function isBackgroundJob(string $jobMethod)
     {
-        return strpos(strtolower($jobMethod), 'background') !== false;
+        return false !== strpos(strtolower($jobMethod), 'background');
     }
 
     /**
-     * @param object $command
-     * @return object
      * @throws \ReflectionException
+     *
+     * @return object
      */
     protected function detachCommandProperties(object $command)
     {
