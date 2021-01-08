@@ -216,7 +216,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
                 continue;
             }
 
-            return $name.':'.class_basename($command);
+            return $name.':'.basename(str_replace('\\', '/', $className));
         }
         throw new \InvalidArgumentException(sprintf('Unable to find a bundle that defines command "%s".', $className));
     }
