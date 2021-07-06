@@ -6,7 +6,6 @@ namespace Etrias\AsyncBundle\Middleware;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostFlushEventArgs;
-use Exception;
 use League\Tactician\Middleware;
 use Throwable;
 
@@ -36,7 +35,6 @@ class TransactionMiddleware implements Middleware
      * @param object $command
      *
      * @throws Throwable
-     * @throws Exception
      *
      * @return mixed
      */
@@ -58,17 +56,13 @@ class TransactionMiddleware implements Middleware
             $this->entityManager->getEventManager()->dispatchEvent('postCommit', new PostFlushEventArgs($this->entityManager));
 
             $this->entityManager->clear();
-        } catch (Exception $e) {
-            $this->rollbackTransaction();
-
-            throw $e;
         } catch (Throwable $e) {
             $this->rollbackTransaction();
 
             throw $e;
+        } finally {
+            $this->isExecuting = false;
         }
-
-        $this->isExecuting = false;
 
         return $returnValue;
     }

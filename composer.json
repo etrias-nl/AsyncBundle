@@ -3,6 +3,7 @@
     "description": "Symfony bundle for async connectivity",
     "type": "symfony-bundle",
     "require": {
+        "php": "^7.4",
         "mmoreram/gearman-bundle": "^4.1",
         "etrias/cqrs-bundle": "~1.0",
         "symfony/dependency-injection": "^3.4 || ^4.0",
