@@ -111,7 +111,7 @@ class CommandBusWorker implements GearmanOutputAwareInterface
 
             if ($this->isBackgroundJob($context)) {
                 $event = new BackgroundJobHandledEvent($job->handle(), $workload, $result);
-                $this->dispatcher->dispatch(BackgroundJobHandledEvent::NAME, $event);
+                $this->dispatcher->dispatch($event, BackgroundJobHandledEvent::NAME);
             } else {
                 return $result;
             }
