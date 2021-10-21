@@ -192,7 +192,7 @@ class AsyncMiddleware implements Middleware, SerializerAwareInterface
         }
 
         $event = new BackgroundJobQueuedEvent($command, $jobMethod, $result);
-        $this->dispatcher->dispatch(BackgroundJobQueuedEvent::NAME, $event);
+        $this->dispatcher->dispatch($event, BackgroundJobQueuedEvent::NAME);
     }
 
     protected function getJobConfig(string $commandClassName)
