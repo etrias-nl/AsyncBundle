@@ -68,13 +68,27 @@ class FullFormatter implements Formatter
      */
     protected static function serialize($value)
     {
-        if (is_object($value)) {
-            $value = $value instanceof \stdClass ? (array) $value : \Closure::bind(fn (): array => get_object_vars($this), $value)->call($value);
+        $stripInternalKeys = false;
+        if ($value instanceof \Traversable) {
+            $value = iterator_to_array($value);
         }
+
+        if (is_object($value)) {
+            $stripInternalKeys = true;
+            $value = (array) $value;
+        }
+
         if (is_array($value)) {
+            $result = [];
             foreach ($value as $k => $v) {
-                $value[$k] = self::serialize($v);
+                if ($stripInternalKeys && false !== $pos = strrpos($k, "\0")) {
+                    $k = substr($k, $pos + 1);
+                }
+
+                $result[$k] = self::serialize($v);
             }
+
+            $value = $result;
         }
 
         return $value;
