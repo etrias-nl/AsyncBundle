@@ -28,6 +28,8 @@
             <argument type="service" id="jms_serializer"/>
         </service>
 
+        <service id="Etrias\AsyncBundle\Logger\Formatter\FullFormatter"/>
+
         <service id="Etrias\AsyncBundle\Registry\WorkerAnnotationRegistry" public="true"/>
         <service id="Etrias\AsyncBundle\Registry\JobRegistry" public="true"/>
 
