@@ -55,7 +55,9 @@ class UserDecorateMiddleware implements Middleware
                 throw new \Exception('Unable to obtain user ID from "'.\get_class($user).'" without a "UserResolverInterface" service.');
             }
 
-            $command = new UserAwareCommandWrapper($command, $userId);
+            if (null !== $userId) {
+                $command = new UserAwareCommandWrapper($command, $userId);
+            }
         }
 
         return $next($command);

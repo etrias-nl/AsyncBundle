@@ -10,18 +10,20 @@ use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
 interface UserResolverInterface
 {
     /**
+     * @see UserAwareCommandWrapper::setUserId()
+     *
      * @param string|object $user
      *
-     * @see UserAwareCommandWrapper::setUserId()
+     * @return int|string|int[]|string[]|null
      */
     public function toUserId($user);
 
     /**
      * @see CommandBusToken::setUser()
      *
-     * @param mixed $userId
+     * @param int|string|int[]|string[] $userId
      *
-     * @return string|object
+     * @return string|object|null
      */
     public function fromUserId($userId);
 }
