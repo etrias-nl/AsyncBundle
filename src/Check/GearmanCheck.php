@@ -8,10 +8,10 @@ use Etrias\AsyncBundle\Registry\JobRegistry;
 use Etrias\AsyncBundle\Registry\WorkerAnnotationRegistry;
 use Etrias\AsyncBundle\Service\GearmanManager;
 use Mmoreram\GearmanBundle\Service\GearmanClient;
-use ZendDiagnostics\Check\AbstractCheck;
-use ZendDiagnostics\Result\Failure;
-use ZendDiagnostics\Result\ResultInterface;
-use ZendDiagnostics\Result\Success;
+use Laminas\Diagnostics\Check\AbstractCheck;
+use Laminas\Diagnostics\Result\Failure;
+use Laminas\Diagnostics\Result\ResultInterface;
+use Laminas\Diagnostics\Result\Success;
 
 class GearmanCheck extends AbstractCheck
 {
