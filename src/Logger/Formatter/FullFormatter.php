@@ -5,13 +5,23 @@ declare(strict_types=1);
 namespace Etrias\AsyncBundle\Logger\Formatter;
 
 use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
+use Etrias\AsyncBundle\Timer\TimerInterface;
 use Etrias\CqrsBundle\Command\QueryInterface;
 use League\Tactician\Logger\Formatter\Formatter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 class FullFormatter implements Formatter
 {
+    /** @var TimerInterface */
+    protected $timer;
+
+    public function __construct(TimerInterface $timer)
+    {
+        $this->timer = $timer;
+    }
+
     public function logCommandReceived(LoggerInterface $logger, $command): void
     {
         $workingCommand = self::getWorkingCommand($command);
@@ -37,7 +47,8 @@ class FullFormatter implements Formatter
 
         $logger->log(
             LogLevel::INFO,
-            sprintf('Command succeeded: %s:%s', \get_class($workingCommand), spl_object_hash($command))
+            sprintf('Command succeeded: %s:%s', \get_class($workingCommand), spl_object_hash($command)),
+            $this->timer->lap()
         );
     }
 
@@ -52,7 +63,7 @@ class FullFormatter implements Formatter
         $logger->log(
             LogLevel::ERROR,
             sprintf('Command failed: %s:%s', \get_class($workingCommand), spl_object_hash($command)),
-            ['exception' => $e]
+            array_merge(['exception' => $e], $this->timer->lap()),
         );
     }
 

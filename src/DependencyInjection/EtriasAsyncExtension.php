@@ -9,6 +9,9 @@ use Etrias\AsyncBundle\Middleware\AsyncMiddleware;
 use Etrias\AsyncBundle\Module\JobConfig;
 use Etrias\AsyncBundle\Registry\JobRegistry;
 use Etrias\AsyncBundle\Registry\WorkerAnnotationRegistry;
+use Etrias\AsyncBundle\Timer\NullTimer;
+use Etrias\AsyncBundle\Timer\StopWatchTimer;
+use Etrias\AsyncBundle\Timer\TimerInterface;
 use Etrias\AsyncBundle\Workers\CommandBusWorker;
 use Mmoreram\GearmanBundle\Driver\Gearman\Job as JobAnnotation;
 use Mmoreram\GearmanBundle\Driver\Gearman\Work as WorkAnnotation;
@@ -19,6 +22,7 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 class EtriasAsyncExtension extends ConfigurableExtension
 {
@@ -53,6 +57,15 @@ class EtriasAsyncExtension extends ConfigurableExtension
         } else {
             $container->removeDefinition('etrias_async.profile_logger');
             $container->removeDefinition('etrias_async.command_collector');
+        }
+
+        if (class_exists(Stopwatch::class)) {
+            $container->setAlias(TimerInterface::class, StopWatchTimer::class);
+            $container->removeDefinition(NullTimer::class);
+        } else {
+            $container->setAlias(TimerInterface::class, NullTimer::class);
+            $container->removeDefinition(StopWatchTimer::class);
+
         }
 
         $this->processWorkerConfig($mergedConfig, $container);

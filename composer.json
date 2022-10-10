@@ -14,7 +14,8 @@
         "friendsofphp/php-cs-fixer": "2.*"
     },
     "suggest": {
-        "liip/monitor-bundle": "Monitor gearman servers"
+        "liip/monitor-bundle": "Monitor gearman servers",
+        "symfony/stopwatch": "Add metrics in logging"
     },
     "authors": [
         {

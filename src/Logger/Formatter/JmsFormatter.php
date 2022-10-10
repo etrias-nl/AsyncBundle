@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Etrias\AsyncBundle\Logger\Formatter;
 
 use Etrias\AsyncBundle\Command\UserAwareCommandWrapper;
+use Etrias\AsyncBundle\Timer\TimerInterface;
 use Etrias\CqrsBundle\Command\QueryInterface;
 use Exception;
 use JMS\Serializer\SerializationContext;
@@ -18,12 +19,16 @@ class JmsFormatter implements Formatter
     /** @var SerializerInterface */
     protected $serializer;
 
+    /** @var TimerInterface */
+    protected $timer;
+
     /**
      * JmsFormatter constructor.
      */
-    public function __construct(SerializerInterface $serializer)
+    public function __construct(SerializerInterface $serializer, TimerInterface $timer)
     {
         $this->serializer = $serializer;
+        $this->timer = $timer;
     }
 
     /**
@@ -63,7 +68,8 @@ class JmsFormatter implements Formatter
 
         $logger->log(
             LogLevel::INFO,
-            sprintf('Command succeeded: %s:%s', \get_class($workingCommand), $commandHash)
+            sprintf('Command succeeded: %s:%s', \get_class($workingCommand), $commandHash),
+            $this->timer->lap()
         );
     }
 
@@ -82,7 +88,7 @@ class JmsFormatter implements Formatter
         $logger->log(
             LogLevel::ERROR,
             sprintf('Command failed: %s:%s', \get_class($workingCommand), $commandHash),
-            ['exception' => $e]
+            array_merge(['exception' => $e], $this->timer->lap())
         );
     }
 
