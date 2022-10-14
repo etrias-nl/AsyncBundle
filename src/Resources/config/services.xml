@@ -22,6 +22,10 @@
             <tag name="monolog.logger" channel="async"/>
         </service>
 
+        <service id="Etrias\AsyncBundle\Middleware\ResetServicesMiddleware">
+            <argument key="$servicesResetter" type="service" id="services_resetter"/>
+        </service>
+
         <service id="etrias_async.profile_logger" class="Etrias\AsyncBundle\Logger\ProfileLogger"/>
 
         <service id="Etrias\AsyncBundle\Logger\Formatter\JmsFormatter">

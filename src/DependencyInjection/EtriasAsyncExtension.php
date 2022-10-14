@@ -46,14 +46,14 @@ class EtriasAsyncExtension extends ConfigurableExtension
         $xmlFileLoader->load('services.xml');
         $ymlFileLoader->load('parameters.yml');
 
-        $cacheMiddleware = $container->getDefinition(AsyncMiddleware::class);
-        $cacheMiddleware->setArgument('$encoding', $mergedConfig['encoding']);
-        $cacheMiddleware->setArgument('$workerEnvironment', $mergedConfig['worker_environment']);
+        $asyncMiddleware = $container->getDefinition(AsyncMiddleware::class);
+        $asyncMiddleware->setArgument('$encoding', $mergedConfig['encoding']);
+        $asyncMiddleware->setArgument('$workerEnvironment', $mergedConfig['worker_environment']);
 
         $profiling = $mergedConfig['profiling'] ?? $container->getParameter('kernel.debug');
 
         if (true === $profiling) {
-            $cacheMiddleware->addMethodCall('setProfileLogger', [new Reference('etrias_async.profile_logger')]);
+            $asyncMiddleware->addMethodCall('setProfileLogger', [new Reference('etrias_async.profile_logger')]);
         } else {
             $container->removeDefinition('etrias_async.profile_logger');
             $container->removeDefinition('etrias_async.command_collector');
