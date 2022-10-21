@@ -38,6 +38,8 @@ class ExecuteCommand extends Command
      */
     private $commandsVerbosity;
 
+    private $stopWorkSignalReceived = false;
+
     /**
      * ExecuteCommand constructor.
      *
@@ -47,6 +49,17 @@ class ExecuteCommand extends Command
     {
         $this->em = $managerRegistry->getManagerForClass(ScheduledCommand::class);
         $this->commandBus = $commandBus;
+
+        /**
+         * If the pcntl_signal exists, subscribe to the terminate and restart events for graceful worker stops.
+         */
+        if(false !== function_exists('pcntl_signal'))
+        {
+            declare(ticks = 1);
+            pcntl_signal(SIGTERM, [$this, "handleSystemSignal"]);
+            pcntl_signal(SIGHUP,  [$this, "handleSystemSignal"]);
+
+        }
 
         parent::__construct();
     }
@@ -63,6 +76,11 @@ class ExecuteCommand extends Command
             ->addOption('no-output', null, InputOption::VALUE_NONE, 'Disable output message from scheduler')
             ->addOption('sync', InputOption::VALUE_OPTIONAL)
             ->setHelp('This class is the entry point to execute all scheduled command');
+    }
+
+    public function handleSystemSignal($signo)
+    {
+        $this->stopWorkSignalReceived = true;
     }
 
     /**
