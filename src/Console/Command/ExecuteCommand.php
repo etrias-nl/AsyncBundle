@@ -1,12 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Etrias\AsyncBundle\Console\Command;
 
 use Cron\CronExpression;
+use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
 use Etrias\AsyncBundle\Command\ScheduledCommandCommand;
+use Etrias\AsyncBundle\Logger\ScheduledCommandProcessor;
 use JMose\CommandSchedulerBundle\Entity\ScheduledCommand;
 use League\Tactician\CommandBus;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -23,35 +28,36 @@ use Symfony\Component\Console\Output\StreamOutput;
 class ExecuteCommand extends Command
 {
     protected CommandBus $commandBus;
-    /**
-     * @var \Doctrine\ORM\EntityManager
-     */
-    private $em;
-
-    /**
-     * @var bool
-     */
-    private $dumpMode;
+    protected ScheduledCommandProcessor $scheduledCommandProcessor;
+    protected LoggerInterface $logger;
+    protected EntityManager  $em;
+    protected bool $dumpMode = false;
+    protected ?int $stopWorkSignalReceived = null;
 
     /**
      * @var int
      */
-    private $commandsVerbosity;
-
-    private $stopWorkSignalReceived = false;
+    private int $commandsVerbosity;
 
     /**
      * ExecuteCommand constructor.
      *
      * @param ManagerRegistry $managerRegistry
      */
-    public function __construct(ManagerRegistry $managerRegistry, CommandBus $commandBus)
+    public function __construct(
+        ManagerRegistry $managerRegistry,
+        CommandBus $commandBus,
+        LoggerInterface $cronLogger,
+        ScheduledCommandProcessor $scheduledCommandProcessor
+    )
     {
         $this->em = $managerRegistry->getManagerForClass(ScheduledCommand::class);
         $this->commandBus = $commandBus;
+        $this->logger = $cronLogger;
+        $this->scheduledCommandProcessor = $scheduledCommandProcessor;
 
         /**
-         * If the pcntl_signal exists, subscribe to the terminate and restart events for graceful worker stops.
+         * If the pcntl_signal exists, subscribe to the terminate and stop handling scheduled commands.
          */
         if(false !== function_exists('pcntl_signal'))
         {
@@ -80,7 +86,8 @@ class ExecuteCommand extends Command
 
     public function handleSystemSignal($signo)
     {
-        $this->stopWorkSignalReceived = true;
+        $this->logger->debug('Stop signal received', ['signo' => $this->stopWorkSignalReceived]);
+        $this->stopWorkSignalReceived = $signo;
     }
 
     /**
@@ -109,12 +116,17 @@ class ExecuteCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln('<info>Start : '.($this->dumpMode ? 'Dump' : 'Execute').' all scheduled command</info>');
+        $this->logger->info('Start : '.($this->dumpMode ? 'Dump' : 'Execute').' all scheduled command');
 
         $commands = $this->em->getRepository(ScheduledCommand::class)->findBy(['disabled' => false], ['priority' => 'DESC']);
 
         $noneExecution = true;
         foreach ($commands as $command) {
+            $this->scheduledCommandProcessor->setCommand($command);
+            if ($this->stopWorkSignalReceived !== null) {
+                return $this->stopWorkSignalReceived;
+            }
+
             /** @var ScheduledCommand $command */
             $cron = CronExpression::factory($command->getCronExpression());
             $nextRunDate = $cron->getNextRunDate($command->getLastExecution());
@@ -122,29 +134,32 @@ class ExecuteCommand extends Command
 
             if ($command->isExecuteImmediately()) {
                 $noneExecution = false;
-                $output->writeln(
-                    'Immediately execution asked for : <comment>'.$command->getCommand().'</comment>'
-                );
+                $this->logger->info('Immediately execution asked');
 
                 if (!$input->getOption('dump')) {
                     $this->executeCommand($command, $output, $input);
                 }
             } elseif ($nextRunDate < $now) {
                 $noneExecution = false;
-                $output->writeln(
-                    'Command <comment>'.$command->getCommand().
-                    '</comment> should be executed - last execution : <comment>'.
-                    $command->getLastExecution()->format(\DateTimeInterface::ATOM).'.</comment>'
-                );
 
-                if (!$input->getOption('dump')) {
+                if ($input->getOption('dump')) {
+                    $output->writeln(
+                        'Command <comment>' . $command->getCommand() .
+                        '</comment> should be executed - last execution : <comment>' .
+                        $command->getLastExecution()->format(\DateTimeInterface::ATOM) . '.</comment>'
+                    );
+                } else {
+                    $this->logger->info(
+                        'Command should be executed',
+                        ['last_execution' => $command->getLastExecution()->format(\DateTimeInterface::ATOM)]
+                    );
                     $this->executeCommand($command, $output, $input);
                 }
             }
         }
 
         if (true === $noneExecution) {
-            $output->writeln('Nothing to do.');
+            $this->logger->debug('Nothing to do.');
         }
 
         return 0;
@@ -161,7 +176,7 @@ class ExecuteCommand extends Command
             $consoleCommand = $this->getApplication()->find($scheduledCommand->getCommand());
         } catch (\InvalidArgumentException $e) {
             $scheduledCommand->setLastReturnCode(-1);
-            $output->writeln('<error>Cannot find '.$scheduledCommand->getCommand().'</error>');
+            $this->logger->error('Cannot find command');
             $this->em->flush();
 
             return;

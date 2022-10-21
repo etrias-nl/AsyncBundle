@@ -38,6 +38,10 @@
 
         <service id="Etrias\AsyncBundle\Logger\Formatter\FullFormatter"/>
 
+        <service id="Etrias\AsyncBundle\Logger\ScheduledCommandProcessor">
+            <tag name="monolog.processor"/>
+        </service>
+
         <service id="Etrias\AsyncBundle\Registry\WorkerAnnotationRegistry" public="true"/>
         <service id="Etrias\AsyncBundle\Registry\JobRegistry" public="true"/>
 
