@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Etrias\AsyncBundle\Handler;
 
 use Cron\CronExpression;
+use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
 use Etrias\AsyncBundle\Command\ScheduledCommandCommand;
 use Etrias\CqrsBundle\Handlers\HandlerInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\Process\Process;
 
 class ScheduledCommandHandler implements HandlerInterface
 {
+    protected EntityManager $entityManager;
     protected ScheduledCommandRepository $commandRepository;
     protected LoggerInterface $logger;
     protected string $cwd;
@@ -28,8 +30,8 @@ class ScheduledCommandHandler implements HandlerInterface
         string $consoleCommand
     )
     {
-        $this->commandRepository = $registry->getManagerForClass(ScheduledCommand::class)->getRepository(ScheduledCommand::class);
-        $this->registry = $registry;
+        $this->entityManager = $registry->getManagerForClass(ScheduledCommand::class);
+        $this->commandRepository = $this->entityManager->getRepository(ScheduledCommand::class);
         $this->logger = $cronLogger;
 
         $this->cwd = $cwd;
@@ -123,12 +125,14 @@ class ScheduledCommandHandler implements HandlerInterface
 
         $returnCode = $process->run();
         $scheduledCommand->setLastReturnCode($returnCode);
-        
+
         if (0 !== $returnCode) {
             throw new ProcessFailedException($process);
         }
 
         $scheduledCommand->setLastExecution(new \DateTime());
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
         $this->logger->info(
             'Finished executing command',
