@@ -6,6 +6,7 @@ namespace Etrias\AsyncBundle;
 
 use Etrias\AsyncBundle\DependencyInjection\Compiler\DoctrineMiddlewarePass;
 use Etrias\AsyncBundle\DependencyInjection\Compiler\LiipMonitorPass;
+use Etrias\AsyncBundle\DependencyInjection\Compiler\SchedulerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -15,5 +16,6 @@ class EtriasAsyncBundle extends Bundle
     {
         $container->addCompilerPass(new LiipMonitorPass());
         $container->addCompilerPass(new DoctrineMiddlewarePass());
+        $container->addCompilerPass(new SchedulerPass());
     }
 }

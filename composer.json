@@ -14,8 +14,11 @@
         "friendsofphp/php-cs-fixer": "2.*"
     },
     "suggest": {
+        "ext-pcntl": "Used to gracefully stop executing tasks",
         "liip/monitor-bundle": "Monitor gearman servers",
-        "symfony/stopwatch": "Add metrics in logging"
+        "symfony/stopwatch": "Add metrics in logging",
+        "jmose/command-scheduler-bundle": "Schedule commands and execute them async",
+        "symfony/process": "Required for async command handling"
     },
     "authors": [
         {

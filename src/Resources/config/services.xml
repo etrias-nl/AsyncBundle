@@ -9,6 +9,10 @@
 
         <service id="tactician.handler.command_name_extractor.class_name" class="Etrias\AsyncBundle\Handler\CommandNameExtractor\ClassNameExtractor"/>
 
+        <service id="Etrias\AsyncBundle\Handler\ScheduledCommandHandler">
+            <argument key="$cwd" type="string">%kernel.project_dir%</argument>
+        </service>
+
         <service id="Etrias\AsyncBundle\Workers\CommandBusWorker" public="true">
             <argument type="service" id="gearman" />
             <argument key="$doctrine" type="service" id="doctrine" on-invalid="ignore"/>
@@ -33,6 +37,10 @@
         </service>
 
         <service id="Etrias\AsyncBundle\Logger\Formatter\FullFormatter"/>
+
+        <service id="Etrias\AsyncBundle\Logger\ScheduledCommandProcessor">
+            <tag name="monolog.processor"/>
+        </service>
 
         <service id="Etrias\AsyncBundle\Registry\WorkerAnnotationRegistry" public="true"/>
         <service id="Etrias\AsyncBundle\Registry\JobRegistry" public="true"/>

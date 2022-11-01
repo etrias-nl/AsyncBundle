@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Etrias\AsyncBundle\DependencyInjection;
 
 use Etrias\AsyncBundle\Check\GearmanCheck;
+use Etrias\AsyncBundle\Handler\ScheduledCommandHandler;
 use Etrias\AsyncBundle\Middleware\AsyncMiddleware;
 use Etrias\AsyncBundle\Module\JobConfig;
 use Etrias\AsyncBundle\Registry\JobRegistry;
@@ -71,6 +72,7 @@ class EtriasAsyncExtension extends ConfigurableExtension
         $this->processWorkerConfig($mergedConfig, $container);
         $this->processJobConfig($mergedConfig, $container);
         $this->processCheckConfig($mergedConfig, $container);
+        $this->processScheduledCommand($mergedConfig, $container);
     }
 
     protected function processWorkerConfig(array $config, ContainerBuilder $container): void
@@ -142,5 +144,12 @@ class EtriasAsyncExtension extends ConfigurableExtension
             $definition->setArgument(0, $config['check']['min_workers']);
             $definition->setArgument(1, $config['check']['max_queued_jobs']);
         }
+    }
+
+    protected function processScheduledCommand(array $config, ContainerBuilder $container): void
+    {
+        $definition = $container->getDefinition(ScheduledCommandHandler::class);
+        $definition->setArgument('$cwd', $config['scheduled_command']['cwd'] ?? $container->getParameter('kernel.project_dir'));
+        $definition->setArgument('$consoleCommand', $config['scheduled_command']['console_command']);
     }
 }
