@@ -127,34 +127,39 @@ class ExecuteCommand extends Command
                 return $this->stopWorkSignalReceived;
             }
 
-            /** @var ScheduledCommand $command */
-            $cron = CronExpression::factory($command->getCronExpression());
-            $nextRunDate = $cron->getNextRunDate($command->getLastExecution());
-            $now = new \DateTime();
+            try {
+                /** @var ScheduledCommand $command */
+                $cron = CronExpression::factory($command->getCronExpression());
+                $nextRunDate = $cron->getNextRunDate($command->getLastExecution());
+                $now = new \DateTime();
 
-            if ($command->isExecuteImmediately()) {
-                $noneExecution = false;
-                $this->logger->info('Immediately execution asked');
+                if ($command->isExecuteImmediately()) {
+                    $noneExecution = false;
+                    $this->logger->info('Immediately execution asked');
 
-                if (!$input->getOption('dump')) {
-                    $this->executeCommand($command, $output, $input);
+                    if (!$input->getOption('dump')) {
+                        $this->executeCommand($command, $output, $input);
+                    }
+                } elseif ($nextRunDate < $now) {
+                    $noneExecution = false;
+
+                    if ($input->getOption('dump')) {
+                        $output->writeln(
+                            'Command <comment>' . $command->getCommand() .
+                            '</comment> should be executed - last execution : <comment>' .
+                            $command->getLastExecution()->format(\DateTimeInterface::ATOM) . '.</comment>'
+                        );
+                    } else {
+                        $this->logger->info(
+                            'Command should be executed',
+                            ['last_execution' => $command->getLastExecution()->format(\DateTimeInterface::ATOM)]
+                        );
+                        $this->executeCommand($command, $output, $input);
+                    }
                 }
-            } elseif ($nextRunDate < $now) {
-                $noneExecution = false;
-
-                if ($input->getOption('dump')) {
-                    $output->writeln(
-                        'Command <comment>' . $command->getCommand() .
-                        '</comment> should be executed - last execution : <comment>' .
-                        $command->getLastExecution()->format(\DateTimeInterface::ATOM) . '.</comment>'
-                    );
-                } else {
-                    $this->logger->info(
-                        'Command should be executed',
-                        ['last_execution' => $command->getLastExecution()->format(\DateTimeInterface::ATOM)]
-                    );
-                    $this->executeCommand($command, $output, $input);
-                }
+            } catch (\Throwable $e) {
+                $this->logger->critical($e);
+                continue;
             }
         }
 
