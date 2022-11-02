@@ -132,7 +132,7 @@ class ScheduledCommandHandler implements HandlerInterface
 
         $scheduledCommand->setLastExecution(new \DateTime());
         $this->entityManager->flush();
-        $this->entityManager->clear();
+
 
         $this->logger->info(
             'Finished executing command',
