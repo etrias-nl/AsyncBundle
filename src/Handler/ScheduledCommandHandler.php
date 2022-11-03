@@ -21,12 +21,14 @@ class ScheduledCommandHandler implements HandlerInterface
     protected ScheduledCommandRepository $commandRepository;
     protected LoggerInterface $logger;
     protected string $cwd;
+    protected bool $debug;
     protected string $consoleCommand;
 
     public function __construct(
         ManagerRegistry $registry,
         LoggerInterface $cronLogger,
         string $cwd,
+        bool $debug,
         string $consoleCommand
     )
     {
@@ -35,6 +37,7 @@ class ScheduledCommandHandler implements HandlerInterface
         $this->logger = $cronLogger;
 
         $this->cwd = $cwd;
+        $this->debug = $debug;
         $this->consoleCommand =$consoleCommand;
     }
 
@@ -106,6 +109,8 @@ class ScheduledCommandHandler implements HandlerInterface
             $scheduledCommand->getCommand(),
             '--no-interaction',
             '--no-ansi',
+            '--env',
+            $this->debug ? 'dev' : 'prod'
         ];
 
         if ($scheduledCommand->getArguments()) {
@@ -122,6 +127,7 @@ class ScheduledCommandHandler implements HandlerInterface
             null,
             null
         );
+        $process->setTty(true);
 
         $returnCode = $process->run();
         $scheduledCommand->setLastReturnCode($returnCode);
