@@ -11,6 +11,7 @@
 
         <service id="Etrias\AsyncBundle\Handler\ScheduledCommandHandler">
             <argument key="$cwd" type="string">%kernel.project_dir%</argument>
+            <argument key="$debug" type="string">%kernel.debug%</argument>
         </service>
 
         <service id="Etrias\AsyncBundle\Workers\CommandBusWorker" public="true">
