@@ -127,7 +127,6 @@ class ScheduledCommandHandler implements HandlerInterface
             null,
             null
         );
-        $process->setTty(true);
 
         $returnCode = $process->run();
         $scheduledCommand->setLastReturnCode($returnCode);
