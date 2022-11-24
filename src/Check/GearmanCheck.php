@@ -107,7 +107,7 @@ class GearmanCheck extends AbstractCheck
                     $status = $statusData[$job['realCallableName']] ?? [];
 
                     if (empty($status) || $status['capable_workers'] < $minWorkers) {
-                        $missingWorkers[] = $jobName;
+                        $missingWorkers[$workerName] = $workerName;
                     } elseif ($status['in_queue'] > $jobMaxJobs) {
                         $overloadedJobs[] = $jobName;
                     }
