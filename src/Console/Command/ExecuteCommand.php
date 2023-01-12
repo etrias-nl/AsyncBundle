@@ -30,7 +30,7 @@ class ExecuteCommand extends Command
     protected CommandBus $commandBus;
     protected ScheduledCommandProcessor $scheduledCommandProcessor;
     protected LoggerInterface $logger;
-    protected EntityManager  $em;
+    protected ?EntityManager $em;
     protected bool $dumpMode = false;
     protected ?int $stopWorkSignalReceived = null;
 
