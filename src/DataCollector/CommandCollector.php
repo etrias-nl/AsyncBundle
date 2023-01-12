@@ -23,9 +23,9 @@ class CommandCollector extends DataCollector implements LateDataCollectorInterfa
     }
 
     /**
-     * Collects data for the given Request and Response.
+     * @param \Throwable $exception
      */
-    public function collect(Request $request, Response $response, \Exception $exception = null): void
+    public function collect(Request $request, Response $response, $exception = null): void
     {
     }
 
