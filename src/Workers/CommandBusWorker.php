@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Etrias\AsyncBundle\Workers;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Common\Persistence\ManagerRegistry as LegacyManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use Etrias\AsyncBundle\Event\BackgroundJobHandledEvent;
 use Etrias\AsyncBundle\Registry\JobRegistry;
 use GearmanJob;
@@ -58,7 +59,7 @@ class CommandBusWorker implements GearmanOutputAwareInterface
      */
     protected $jobRegistry;
     /**
-     * @var ManagerRegistry
+     * @var ManagerRegistry|LegacyManagerRegistry
      */
     protected $doctrine;
 
@@ -68,7 +69,7 @@ class CommandBusWorker implements GearmanOutputAwareInterface
     protected $propertyAccessor;
 
     /**
-     * CommandBusWorker constructor.
+     * @param ManagerRegistry|LegacyManagerRegistry $doctrine
      */
     public function __construct(
         GearmanClient $gearmanClient,
@@ -78,7 +79,7 @@ class CommandBusWorker implements GearmanOutputAwareInterface
         EventDispatcherInterface $dispatcher,
         JobRegistry $jobRegistry,
         LoggerInterface $logger,
-        ManagerRegistry $doctrine = null
+        $doctrine = null
     ) {
         $this->gearmanClient = $gearmanClient;
         $this->serializer = $serializer;
