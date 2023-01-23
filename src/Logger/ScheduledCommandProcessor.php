@@ -7,27 +7,47 @@ namespace Etrias\AsyncBundle\Logger;
 
 
 use JMose\CommandSchedulerBundle\Entity\ScheduledCommand;
+use Monolog\LogRecord;
 
 class ScheduledCommandProcessor
 {
-    private ?ScheduledCommand $command = null;
+    /**
+     * @var ScheduledCommand|\Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand|null
+     */
+    private ?object $command = null;
 
-    public function __invoke(array $record)
+    /**
+     * @param array|LogRecord $record
+     *
+     * @return array|LogRecord
+     */
+    public function __invoke($record)
     {
-
-        if ($this->command) {
-            $record['extra']['commandId'] = $this->command->getId();
-            $record['extra']['command'] = $this->command->getCommand();
-            $record['extra']['args'] = $this->command->getArguments();
+        if (!$this->command) {
+            return $record;
         }
+
+        if ($record instanceof LogRecord) {
+            $extra = $record->extra;
+
+            $extra['commandId'] = $this->command->getId();
+            $extra['command'] = $this->command->getCommand();
+            $extra['args'] = $this->command->getArguments();
+
+            return $record->with(extra: $extra);
+        }
+
+        $record['extra']['commandId'] = $this->command->getId();
+        $record['extra']['command'] = $this->command->getCommand();
+        $record['extra']['args'] = $this->command->getArguments();
 
         return $record;
     }
 
     /**
-     * @param ?ScheduledCommand $command
+     * @param ?ScheduledCommand|\Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand|null $command
      */
-    public function setCommand(?ScheduledCommand $command): void
+    public function setCommand(?object $command): void
     {
         $this->command = $command;
     }

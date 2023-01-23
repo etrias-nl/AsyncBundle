@@ -9,7 +9,8 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
 use Etrias\AsyncBundle\Command\ScheduledCommandCommand;
 use Etrias\AsyncBundle\Logger\ScheduledCommandProcessor;
-use JMose\CommandSchedulerBundle\Entity\ScheduledCommand;
+use JMose\CommandSchedulerBundle\Entity\ScheduledCommand as JMoseScheduledCommand;
+use Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand as DukecityScheduledCommand;
 use League\Tactician\CommandBus;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -51,7 +52,11 @@ class ExecuteCommand extends Command
         ScheduledCommandProcessor $scheduledCommandProcessor
     )
     {
-        $this->em = $managerRegistry->getManagerForClass(ScheduledCommand::class);
+        if (class_exists(DukecityScheduledCommand::class)) {
+            $this->em = $managerRegistry->getManagerForClass(DukecityScheduledCommand::class);
+        } else {
+            $this->em = $managerRegistry->getManagerForClass(JMoseScheduledCommand::class);
+        }
         $this->commandBus = $commandBus;
         $this->logger = $cronLogger;
         $this->scheduledCommandProcessor = $scheduledCommandProcessor;

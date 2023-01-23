@@ -9,8 +9,10 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
 use Etrias\AsyncBundle\Command\ScheduledCommandCommand;
 use Etrias\CqrsBundle\Handlers\HandlerInterface;
-use JMose\CommandSchedulerBundle\Entity\Repository\ScheduledCommandRepository;
-use JMose\CommandSchedulerBundle\Entity\ScheduledCommand;
+use JMose\CommandSchedulerBundle\Entity\Repository\ScheduledCommandRepository as JMoseScheduledCommandRepository;
+use Dukecity\CommandSchedulerBundle\Repository\ScheduledCommandRepository as DukecityScheduledCommandRepository;
+use JMose\CommandSchedulerBundle\Entity\ScheduledCommand as JMoseScheduledCommand;
+use Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand as DukecityScheduledCommand;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -18,7 +20,8 @@ use Symfony\Component\Process\Process;
 class ScheduledCommandHandler implements HandlerInterface
 {
     protected EntityManager $entityManager;
-    protected ScheduledCommandRepository $commandRepository;
+    /** @var JMoseScheduledCommandRepository|DukecityScheduledCommandRepository  */
+    protected object $commandRepository;
     protected LoggerInterface $logger;
     protected string $cwd;
     protected bool $debug;
@@ -30,17 +33,20 @@ class ScheduledCommandHandler implements HandlerInterface
         string $cwd,
         bool $debug,
         string $consoleCommand
-    )
-    {
-        $this->entityManager = $registry->getManagerForClass(ScheduledCommand::class);
-        $this->commandRepository = $this->entityManager->getRepository(ScheduledCommand::class);
+    ) {
+        if (class_exists(DukecityScheduledCommand::class)) {
+            $this->entityManager = $registry->getManagerForClass(DukecityScheduledCommand::class);
+            $this->commandRepository = $this->entityManager->getRepository(DukecityScheduledCommand::class);
+        } else {
+            $this->entityManager = $registry->getManagerForClass(JMoseScheduledCommand::class);
+            $this->commandRepository = $this->entityManager->getRepository(JMoseScheduledCommand::class);
+        }
         $this->logger = $cronLogger;
 
         $this->cwd = $cwd;
         $this->debug = $debug;
-        $this->consoleCommand =$consoleCommand;
+        $this->consoleCommand = $consoleCommand;
     }
-
 
     public function handle(ScheduledCommandCommand $scheduledCommandCommand)
     {
