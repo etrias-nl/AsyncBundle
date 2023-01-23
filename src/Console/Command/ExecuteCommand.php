@@ -80,7 +80,7 @@ class ExecuteCommand extends Command
             ->setDescription('Execute scheduled commands')
             ->addOption('dump', null, InputOption::VALUE_NONE, 'Display next execution')
             ->addOption('no-output', null, InputOption::VALUE_NONE, 'Disable output message from scheduler')
-            ->addOption('sync', InputOption::VALUE_OPTIONAL)
+            ->addOption('sync', null, InputOption::VALUE_OPTIONAL)
             ->setHelp('This class is the entry point to execute all scheduled command');
     }
 
