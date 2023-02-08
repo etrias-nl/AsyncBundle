@@ -4,51 +4,74 @@ declare(strict_types=1);
 
 namespace Etrias\AsyncBundle\Logger;
 
-
-
-use JMose\CommandSchedulerBundle\Entity\ScheduledCommand;
+use JMose\CommandSchedulerBundle\Entity\ScheduledCommand as JMoseScheduledCommand;
+use Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand as DukecityScheduledCommand;
 use Monolog\LogRecord;
 
-class ScheduledCommandProcessor
-{
-    /**
-     * @var ScheduledCommand|\Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand|null
-     */
-    private ?object $command = null;
-
-    /**
-     * @param array|LogRecord $record
-     *
-     * @return array|LogRecord
-     */
-    public function __invoke($record)
+if (class_exists(DukecityScheduledCommand::class)) {
+    class ScheduledCommandProcessor
     {
-        if (!$this->command) {
+        private ?DukecityScheduledCommand $command = null;
+
+        /**
+         * @param array|LogRecord $record
+         *
+         * @return array|LogRecord
+         */
+        public function __invoke($record)
+        {
+            if (!$this->command) {
+                return $record;
+            }
+
+            if ($record instanceof LogRecord) {
+                $extra = $record->extra;
+
+                $extra['commandId'] = $this->command->getId();
+                $extra['command'] = $this->command->getCommand();
+                $extra['args'] = $this->command->getArguments();
+
+                return $record->with(extra: $extra);
+            }
+
+            $record['extra']['commandId'] = $this->command->getId();
+            $record['extra']['command'] = $this->command->getCommand();
+            $record['extra']['args'] = $this->command->getArguments();
+
             return $record;
         }
 
-        if ($record instanceof LogRecord) {
-            $extra = $record->extra;
+        public function setCommand(?DukecityScheduledCommand $command): void
+        {
+            $this->command = $command;
+        }
+    }
+} else {
+    class ScheduledCommandProcessor
+    {
+        private ?JMoseScheduledCommand $command = null;
 
-            $extra['commandId'] = $this->command->getId();
-            $extra['command'] = $this->command->getCommand();
-            $extra['args'] = $this->command->getArguments();
+        /**
+         * @param array $record
+         *
+         * @return array
+         */
+        public function __invoke($record)
+        {
+            if (!$this->command) {
+                return $record;
+            }
 
-            return $record->with(extra: $extra);
+            $record['extra']['commandId'] = $this->command->getId();
+            $record['extra']['command'] = $this->command->getCommand();
+            $record['extra']['args'] = $this->command->getArguments();
+
+            return $record;
         }
 
-        $record['extra']['commandId'] = $this->command->getId();
-        $record['extra']['command'] = $this->command->getCommand();
-        $record['extra']['args'] = $this->command->getArguments();
-
-        return $record;
-    }
-
-    /**
-     * @param ?ScheduledCommand|\Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand|null $command
-     */
-    public function setCommand(?object $command): void
-    {
-        $this->command = $command;
+        public function setCommand(?JMoseScheduledCommand $command): void
+        {
+            $this->command = $command;
+        }
     }
 }
