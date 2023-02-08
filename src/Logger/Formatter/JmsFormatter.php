@@ -14,9 +14,6 @@ use League\Tactician\Logger\Formatter\Formatter;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
-/**
- * @deprecated
- */
 class JmsFormatter implements Formatter
 {
     /** @var SerializerInterface */
