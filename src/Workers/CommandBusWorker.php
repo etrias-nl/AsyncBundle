@@ -107,7 +107,7 @@ class CommandBusWorker implements GearmanOutputAwareInterface
 
             if (!is_array($workload)) {
                 $this->output->writeln(sprintf('<error>Error in job workload</error> %s <comment>%s</comment>', $job->functionName(), $job->handle()));
-                return;
+                return null;
             }
             
             $workload['command'] = $this->mergeEntities($workload['command']);
