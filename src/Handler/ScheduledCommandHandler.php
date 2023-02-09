@@ -134,20 +134,23 @@ class ScheduledCommandHandler implements HandlerInterface
             null
         );
 
-        $returnCode = $process->run();
-        $scheduledCommand->setLastReturnCode($returnCode);
+        try {
+            $process->mustRun();
 
-        if (0 !== $returnCode) {
-            throw new ProcessFailedException($process);
+            $this->logger->info(
+                'Finished executing command',
+                ['command' => $scheduledCommand->getCommand(), 'args' => $scheduledCommand->getArguments()]
+            );
+        } catch (ProcessFailedException $e) {
+            $this->logger->error(
+                $e->getMessage(),
+                ['command' => $scheduledCommand->getCommand(), 'args' => $scheduledCommand->getArguments()]
+            );
         }
 
+        $scheduledCommand->setLastReturnCode($process->getExitCode());
         $scheduledCommand->setLastExecution(new \DateTime());
+
         $this->entityManager->flush();
-
-
-        $this->logger->info(
-            'Finished executing command',
-            ['command' => $scheduledCommand->getCommand(), 'args' => $scheduledCommand->getArguments()]
-        );
     }
 }
