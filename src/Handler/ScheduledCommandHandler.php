@@ -12,7 +12,7 @@ use Etrias\CqrsBundle\Handlers\HandlerInterface;
 use JMose\CommandSchedulerBundle\Entity\Repository\ScheduledCommandRepository;
 use JMose\CommandSchedulerBundle\Entity\ScheduledCommand;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Exception\RuntimeException;
 use Symfony\Component\Process\Process;
 
 class ScheduledCommandHandler implements HandlerInterface
@@ -134,7 +134,7 @@ class ScheduledCommandHandler implements HandlerInterface
                 'Finished executing command',
                 ['command' => $scheduledCommand->getCommand(), 'args' => $scheduledCommand->getArguments()]
             );
-        } catch (ProcessFailedException $e) {
+        } catch (RuntimeException $e) {
             $this->logger->error(
                 $e->getMessage(),
                 ['command' => $scheduledCommand->getCommand(), 'args' => $scheduledCommand->getArguments()]
