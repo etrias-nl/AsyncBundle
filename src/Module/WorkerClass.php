@@ -10,13 +10,6 @@ use Mmoreram\GearmanBundle\Module\JobCollection;
 use Mmoreram\GearmanBundle\Module\WorkerClass as MmoreramWorkerClass;
 use ReflectionClass;
 
-/**
- * Job class.
- *
- * This class provide all worker definition.
- *
- * @since 2.3.1
- */
 class WorkerClass extends MmoreramWorkerClass
 {
     /**
@@ -43,12 +36,7 @@ class WorkerClass extends MmoreramWorkerClass
         return $this->jobCollection;
     }
 
-    /**
-     * Retrieve all Worker data in cache format.
-     *
-     * @return array
-     */
-    public function toArray()
+    public function toArray(): array
     {
         $array = parent::toArray();
         $array['jobs'] = $this->jobCollection->toArray();
