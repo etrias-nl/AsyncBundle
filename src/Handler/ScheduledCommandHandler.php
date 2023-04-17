@@ -33,8 +33,7 @@ class ScheduledCommandHandler implements HandlerInterface
         string $cwd,
         bool $debug,
         string $consoleCommand
-    )
-    {
+    ) {
         if (class_exists(DukecityScheduledCommand::class)) {
             $this->entityManager = $registry->getManagerForClass(DukecityScheduledCommand::class);
             $this->commandRepository = $this->entityManager->getRepository(DukecityScheduledCommand::class);
