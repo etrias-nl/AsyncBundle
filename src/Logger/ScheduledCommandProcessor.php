@@ -45,7 +45,7 @@ class ScheduledCommandProcessor
     }
 
     /**
-     * @param ?ScheduledCommand|\Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand|null $command
+     * @param ScheduledCommand|\Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand|null $command
      */
     public function setCommand(?object $command): void
     {
