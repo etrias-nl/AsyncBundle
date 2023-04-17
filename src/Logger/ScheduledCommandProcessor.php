@@ -10,7 +10,10 @@ use JMose\CommandSchedulerBundle\Entity\ScheduledCommand;
 
 class ScheduledCommandProcessor
 {
-    private ?ScheduledCommand $command = null;
+    /**
+     * @var ScheduledCommand|\Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand|null
+     */
+    private ?object $command = null;
 
     public function __invoke(array $record)
     {
@@ -25,9 +28,9 @@ class ScheduledCommandProcessor
     }
 
     /**
-     * @param ?ScheduledCommand $command
+     * @param ScheduledCommand|\Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand|null $command
      */
-    public function setCommand(?ScheduledCommand $command): void
+    public function setCommand(?object $command): void
     {
         $this->command = $command;
     }
