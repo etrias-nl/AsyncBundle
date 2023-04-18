@@ -123,7 +123,11 @@ class ExecuteCommand extends Command
     {
         $this->logger->info('Start : '.($this->dumpMode ? 'Dump' : 'Execute').' all scheduled command');
 
-        $commands = $this->em->getRepository(ScheduledCommand::class)->findBy(['disabled' => false], ['priority' => 'DESC']);
+        if (class_exists(DukecityScheduledCommand::class)) {
+            $commands = $this->em->getRepository(DukecityScheduledCommand::class)->findBy(['disabled' => false], ['priority' => 'DESC']);
+        } else {
+            $commands = $this->em->getRepository(JMoseScheduledCommand::class)->findBy(['disabled' => false], ['priority' => 'DESC']);
+        }
 
         $noneExecution = true;
         foreach ($commands as $command) {
