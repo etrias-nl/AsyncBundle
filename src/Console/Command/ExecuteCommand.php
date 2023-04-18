@@ -180,11 +180,9 @@ class ExecuteCommand extends Command
     }
 
     /**
-     * @param ScheduledCommand $scheduledCommand
-     * @param OutputInterface  $output
-     * @param InputInterface   $input
+     * @param JMoseScheduledCommand|DukecityScheduledCommand $scheduledCommand
      */
-    private function executeCommand(ScheduledCommand $scheduledCommand, OutputInterface $output, InputInterface $input)
+    private function executeCommand(object $scheduledCommand, OutputInterface $output, InputInterface $input)
     {
         try {
             $consoleCommand = $this->getApplication()->find($scheduledCommand->getCommand());
