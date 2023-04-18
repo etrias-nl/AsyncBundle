@@ -103,7 +103,10 @@ class ScheduledCommandHandler implements HandlerInterface
         );
     }
 
-    protected function executeCommand(ScheduledCommand $scheduledCommand)
+    /**
+     * @param JMoseScheduledCommand|DukecityScheduledCommand $scheduledCommand
+     */
+    protected function executeCommand(object $scheduledCommand)
     {
         $this->logger->info(
             'Start executing command',
