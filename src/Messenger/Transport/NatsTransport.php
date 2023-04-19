@@ -12,15 +12,19 @@ class NatsTransport implements TransportInterface, ResetInterface
 {
     protected Connection $client;
     protected SerializerInterface $serializer;
+    protected ?int $timeout;
 
-    public function __construct(Connection $client, SerializerInterface $serializer)
+    public function __construct(Connection $client, SerializerInterface $serializer, int $timeout = null)
     {
         $this->client = $client;
         $this->serializer = $serializer;
+        $this->timeout = $timeout;
     }
 
     public function get(): iterable
     {
+        $this->connect();
+        $this->client->subscribe();
         // TODO: Implement get() method.
     }
 
@@ -42,5 +46,12 @@ class NatsTransport implements TransportInterface, ResetInterface
     public function send(Envelope $envelope): Envelope
     {
         // TODO: Implement send() method.
+    }
+
+    private function connect()
+    {
+        if (!$this->client->isConnected()) {
+            $this->client->connect($this->timeout);
+        }
     }
 }
