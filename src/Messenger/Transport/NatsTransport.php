@@ -24,34 +24,46 @@ class NatsTransport implements TransportInterface, ResetInterface
     public function get(): iterable
     {
         $this->connect();
+        dd('get');
         $this->client->subscribe();
         // TODO: Implement get() method.
     }
 
     public function ack(Envelope $envelope): void
     {
+        $this->connect();
+        dd('ack');
         // TODO: Implement ack() method.
     }
 
     public function reject(Envelope $envelope): void
     {
+        $this->connect();
+        dd('reject');
         // TODO: Implement reject() method.
     }
 
     public function reset()
     {
+        $this->connect();
+        dd('reset');
         // TODO: Implement reset() method.
     }
 
     public function send(Envelope $envelope): Envelope
     {
+        $this->connect();
+
+        $this->client->publish('foo', 'Marty McFly');
+        dd('send');
         // TODO: Implement send() method.
     }
 
     private function connect()
     {
         if (!$this->client->isConnected()) {
-            $this->client->connect($this->timeout);
+            $a = $this->client->connect($this->timeout);
+            $b  = 1;
         }
     }
 }
