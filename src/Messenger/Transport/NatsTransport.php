@@ -4,6 +4,9 @@ namespace Etrias\AsyncBundle\Messenger\Transport;
 
 use Nats\Connection;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Exception\InvalidArgumentException;
+use Symfony\Component\Messenger\Exception\TransportException;
+use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Contracts\Service\ResetInterface;
@@ -12,58 +15,74 @@ class NatsTransport implements TransportInterface, ResetInterface
 {
     protected Connection $client;
     protected SerializerInterface $serializer;
+    protected string $subject;
+    protected ?string $inbox;
     protected ?int $timeout;
 
-    public function __construct(Connection $client, SerializerInterface $serializer, int $timeout = null)
+    public function __construct(
+        Connection $client,
+        SerializerInterface $serializer,
+        string $subject,
+        string $inbox = null,
+        int $timeout = null
+    )
     {
         $this->client = $client;
         $this->serializer = $serializer;
+        $this->subject = $subject;
+        $this->inbox = $inbox;
         $this->timeout = $timeout;
     }
 
     public function get(): iterable
     {
+        $receivedMessages = [];
+
         $this->connect();
-        dd('get');
-        $this->client->subscribe();
-        // TODO: Implement get() method.
+        $this->client->subscribe($this->subject, function($message) use (&$receivedMessages) {
+            $receivedMessages[] = ['body' => $this->serializer->decode($message)];
+        });
+
+        $this->client->wait(1);
+
+        return $receivedMessages;
     }
 
     public function ack(Envelope $envelope): void
     {
-        $this->connect();
-        dd('ack');
-        // TODO: Implement ack() method.
+        throw new InvalidArgumentException('You cannot call ack() on the Messenger NatsTransport.');
     }
 
     public function reject(Envelope $envelope): void
     {
-        $this->connect();
-        dd('reject');
-        // TODO: Implement reject() method.
+        throw new InvalidArgumentException('You cannot call reject() on the Messenger NatsTransport.');
     }
 
     public function reset()
     {
-        $this->connect();
-        dd('reset');
-        // TODO: Implement reset() method.
+        // no-op
     }
 
     public function send(Envelope $envelope): Envelope
     {
-        $this->connect();
+        $encodedMessage = $this->serializer->encode($envelope);
 
-        $this->client->publish('foo', 'Marty McFly');
-        dd('send');
-        // TODO: Implement send() method.
+        try {
+            $this->connect();
+            $this->client->publish($this->subject, $encodedMessage['body'], $this->inbox);
+        } catch (\Throwable $exception) {
+            throw new TransportException($exception->getMessage(), 0, $exception);
+        }
+
+        //If possible we want to add a TransportMessageIdStamp with the message id
+
+        return $envelope;
     }
 
     private function connect()
     {
         if (!$this->client->isConnected()) {
-            $a = $this->client->connect($this->timeout);
-            $b  = 1;
+            $this->client->connect($this->timeout);
         }
     }
 }

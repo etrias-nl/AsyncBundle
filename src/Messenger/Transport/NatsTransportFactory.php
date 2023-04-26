@@ -15,13 +15,28 @@ class NatsTransportFactory implements TransportFactoryInterface
     {
         $urlParts = parse_url($dsn);
 
+        $queryParts = [];
+        parse_str($urlParts['query'] ?? '', $queryParts);
+
+        if (!key_exists('subject', $queryParts)) {
+            throw new \InvalidArgumentException('Connection string must contain "subject" in querystring');
+        }
+
         $options = array_intersect_key($urlParts, array_flip(['host', 'port', 'user', 'pass']));
 
         $client = new Connection(
             new ConnectionOptions($options)
         );
 
-        return new NatsTransport($client, $serializer);
+
+
+        return new NatsTransport(
+            $client,
+            $serializer,
+            $queryParts['subject'],
+            $queryParts['inbox'] ?? null,
+            $queryParts['timeout'] ?? null
+        );
     }
 
     public function supports(string $dsn, array $options): bool

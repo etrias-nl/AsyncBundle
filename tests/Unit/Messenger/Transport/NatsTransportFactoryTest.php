@@ -28,7 +28,7 @@ class NatsTransportFactoryTest extends TestCase
 
     public function testCreateTransport()
     {
-        $transport = $this->factory->createTransport('nats://username:password@nats:4222?non_processed=value', [], $this->serializer);
+        $transport = $this->factory->createTransport('nats://username:password@nats:4222?subject=queue1&inbox=inbox1&non_processed=value', [], $this->serializer);
 
         $this->assertEquals(
             new NatsTransport(
@@ -42,7 +42,9 @@ class NatsTransportFactoryTest extends TestCase
                         ]
                     )
                 ),
-                $this->serializer
+                $this->serializer,
+                'queue1',
+                'inbox1'
             ),
         $transport);
     }
