@@ -24,6 +24,7 @@ use Symfony\Component\Messenger\Transport\Sender\SendersLocator;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Worker;
 use Tests\Etrias\AsyncBundle\Fixtures\DummyMessage;
+use Thread;
 
 class NatsTransportTest extends KernelTestCase
 {
@@ -100,14 +101,21 @@ class NatsTransportTest extends KernelTestCase
             return $throwable;
         };
 
-        $throwable = $runWorker('nats');
+        var_dump('before start worker');
+        $threadedWorker = new ThreadedCallable($runWorker, ['nats']);
+        $threadedWorker->start();
+        var_dump('after start worker');
 
         // send the message
+        var_dump('before dispatch envelope');
         $envelope = new Envelope(new DummyMessage('API'));
         $envelope = $bus->dispatch($envelope);
+        var_dump('after dispatch envelope');
 
+        $b = $threadedWorker->join();
 
         $a = 1;
+        var_dump('end');
     }
 
     public function testTimeout()
@@ -148,5 +156,21 @@ class DummyTestHandler
     public function setShouldThrow(bool $shouldThrow)
     {
         $this->shouldThrow = $shouldThrow;
+    }
+}
+
+class ThreadedCallable extends Thread {
+    protected $callable;
+    protected iterable $args;
+
+    public function __construct(callable $callable, iterable $args)
+    {
+        $this->callable = $callable;
+        $this->args = $args;
+    }
+
+    public function run()
+    {
+        $this->callable(...$this->args);
     }
 }
