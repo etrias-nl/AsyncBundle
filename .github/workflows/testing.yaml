@@ -25,7 +25,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extension: pthreads
+          extensions: pthreads
         env:
           runner: self-hosted
           phpts: ts
