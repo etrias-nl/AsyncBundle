@@ -21,11 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@verbose
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: pthreads
+          extensions: parallel
         env:
           runner: self-hosted
           phpts: ts

@@ -5,7 +5,10 @@
   </php>
   <testsuites>
     <testsuite name="Nats Messenger Unit Test Suite">
-      <directory>./Tests/Unit</directory>
+      <directory>./tests/Unit</directory>
+    </testsuite>
+    <testsuite name="Nats Messenger Integration Test Suite">
+      <directory>./tests/Integration</directory>
     </testsuite>
     <!--        <testsuite name="Nats Messenger Integration Test Suite">-->
     <!--            <directory>./Tests/Integration</directory>-->
@@ -17,7 +20,7 @@
       <directory>./</directory>
     </include>
     <exclude>
-      <directory>./Tests</directory>
+      <directory>./tests</directory>
       <directory>./vendor</directory>
     </exclude>
   </source>
