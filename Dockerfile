@@ -24,3 +24,5 @@ RUN cd /tmp \
 RUN docker-php-ext-enable sodium
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+
+WORKDIR /app
