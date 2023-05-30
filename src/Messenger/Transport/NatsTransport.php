@@ -3,6 +3,7 @@
 namespace Etrias\AsyncBundle\Messenger\Transport;
 
 use Nats\Connection;
+use Nats\Message;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
@@ -40,19 +41,21 @@ class NatsTransport implements TransportInterface, ResetInterface
         $receivedMessages = [];
 
         $this->connect();
-        $this->client->subscribe($this->subject, function($message) use (&$receivedMessages) {
-            $receivedMessages[] = ['body' => $this->serializer->decode($message)];
+        $this->client->subscribe($this->subject, function(Message $message) use (&$receivedMessages) {
+            $receivedMessages[] = $this->serializer->decode(['body' => $message->getBody()]);
         });
 
         $this->client->wait(1);
         var_dump('get one');
+
+        var_dump($receivedMessages);
 
         return $receivedMessages;
     }
 
     public function ack(Envelope $envelope): void
     {
-        throw new InvalidArgumentException('You cannot call ack() on the Messenger NatsTransport.');
+//        throw new InvalidArgumentException('You cannot call ack() on the Messenger NatsTransport.');
     }
 
     public function reject(Envelope $envelope): void
