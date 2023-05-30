@@ -13,7 +13,7 @@ use parallel\Channel;
 class NatsTransportTest extends KernelTestCase
 {
 
-    public function testDisPatchToNats()
+    public function testDispatchToNats()
     {
         require __DIR__.'/../../../Fixtures/setup_eventbus.php';
 
@@ -34,6 +34,14 @@ class NatsTransportTest extends KernelTestCase
             //return 'throwable';
         };
 
+        $runDispatcher = function() {
+            require __DIR__.'/../../../Fixtures/setup_eventbus.php';
+
+            $envelope = new Envelope(new DummyMessage('API'));
+            $envelope = $bus->dispatch($envelope);
+
+        };
+
         var_dump('before start worker');
         $channel = new Channel();
         $threadedWorker = new Runtime();
@@ -42,12 +50,11 @@ class NatsTransportTest extends KernelTestCase
 
         // send the message
         var_dump('before dispatch envelope');
-        $envelope = new Envelope(new DummyMessage('API'));
-        $envelope = $bus->dispatch($envelope);
+        $threadedDispatcher = new Runtime();
+        $threadedDispatcher->run($runDispatcher);
         var_dump('after dispatch envelope');
 
         $channel->close();
-        $a = 1;
         var_dump('end');
     }
 
@@ -59,35 +66,5 @@ class NatsTransportTest extends KernelTestCase
     public function testReconnectAfterTimeout()
     {
 
-    }
-}
-
-class DummyTestHandler
-{
-    private $timesCalled = 0;
-    private $shouldThrow;
-
-    public function __construct(bool $shouldThrow)
-    {
-        $this->shouldThrow = $shouldThrow;
-    }
-
-    public function __invoke()
-    {
-        ++$this->timesCalled;
-
-        if ($this->shouldThrow) {
-            throw new \Exception('Failure from call '.$this->timesCalled);
-        }
-    }
-
-    public function getTimesCalled(): int
-    {
-        return $this->timesCalled;
-    }
-
-    public function setShouldThrow(bool $shouldThrow)
-    {
-        $this->shouldThrow = $shouldThrow;
     }
 }
