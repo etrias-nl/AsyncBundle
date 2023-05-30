@@ -1,9 +1,11 @@
 ARG PHPVERSION=8.2
 
+FROM composer:2.5 as composer
+
 FROM php:${PHPVERSION}-zts-bullseye as php
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      autoconf g++ make libgearman-dev \
+      autoconf g++ make libgearman-dev libzip-dev unzip \
       && rm -rf /var/lib/apt/lists/*
 
 RUN pecl install parallel && docker-php-ext-enable parallel
@@ -23,6 +25,8 @@ RUN cd /tmp \
 
 RUN docker-php-ext-enable sodium
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+RUN docker-php-ext-install zip && docker-php-ext-enable zip
+
+COPY --from=composer /usr/bin/composer /usr/bin/
 
 WORKDIR /app

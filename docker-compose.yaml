@@ -13,6 +13,8 @@ services:
 
   integration-tester:
     build: .
+    depends_on:
+      - nats
     volumes:
       - ".:/app"
     entrypoint:
