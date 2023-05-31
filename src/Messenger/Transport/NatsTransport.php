@@ -7,7 +7,6 @@ use Nats\Message;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
-use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Contracts\Service\ResetInterface;
@@ -46,16 +45,15 @@ class NatsTransport implements TransportInterface, ResetInterface
         });
 
         $this->client->wait(1);
-        var_dump('get one');
 
-        var_dump($receivedMessages);
+        #todo try/catch
 
         return $receivedMessages;
     }
 
     public function ack(Envelope $envelope): void
     {
-//        throw new InvalidArgumentException('You cannot call ack() on the Messenger NatsTransport.');
+        //no-op, because ack is already handled by get.
     }
 
     public function reject(Envelope $envelope): void

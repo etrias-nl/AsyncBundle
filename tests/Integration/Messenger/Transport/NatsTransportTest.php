@@ -9,49 +9,56 @@ use Symfony\Component\Messenger\Worker;
 use Tests\Etrias\AsyncBundle\Fixtures\DummyMessage;
 use parallel\Runtime;
 use parallel\Channel;
+use Tests\Etrias\AsyncBundle\Fixtures\EventbusSetup;
 
 class NatsTransportTest extends KernelTestCase
 {
 
     public function testDispatchToNats()
     {
-        require __DIR__.'/../../../Fixtures/setup_eventbus.php';
+        $channel = new Channel();
+        $eventBusSetup = new EventbusSetup($channel);
 
-        $runWorker = function (string $transportName) {
-            require __DIR__.'/../../../Fixtures/setup_eventbus.php';
+
+        $runWorker = function (Channel $channel) {
+            require_once(__DIR__.'/../../../../vendor/autoload.php');
+            $eventBusSetup = new EventbusSetup($channel);
 
             $throwable = null;
             $failedListener = function (WorkerMessageFailedEvent $event) use (&$throwable) {
                 $throwable = $event->getThrowable();
             };
-            $dispatcher->addListener(WorkerMessageFailedEvent::class, $failedListener);
+            $eventBusSetup->getEventDispatcher()->addListener(WorkerMessageFailedEvent::class, $failedListener);
 
 
-            $worker = new Worker([$transportName => $transports[$transportName]], $bus, $dispatcher);
+            $worker = new Worker(
+                $eventBusSetup->getTransports(),
+                $eventBusSetup->getMessageBus(),
+                $eventBusSetup->getEventDispatcher());
 
             $worker->run();
 
             //return 'throwable';
         };
 
-        $runDispatcher = function() {
-            require __DIR__.'/../../../Fixtures/setup_eventbus.php';
+        $runDispatcher = function(Channel $channel) {
+            require_once(__DIR__.'/../../../../vendor/autoload.php');
+            $eventBusSetup = new EventbusSetup($channel);
 
             $envelope = new Envelope(new DummyMessage('API'));
-            $envelope = $bus->dispatch($envelope);
-
+            $envelope = $eventBusSetup->getMessageBus()->dispatch($envelope);
         };
 
         var_dump('before start worker');
-        $channel = new Channel();
+
         $threadedWorker = new Runtime();
-        $threadedWorker->run($runWorker, ['nats']);
+        $threadedWorker->run($runWorker, [$channel, 'nats']);
         var_dump('after start worker');
 
         // send the message
         var_dump('before dispatch envelope');
         $threadedDispatcher = new Runtime();
-        $threadedDispatcher->run($runDispatcher);
+        $threadedDispatcher->run($runDispatcher. [$channel]);
         var_dump('after dispatch envelope');
 
         $channel->close();
