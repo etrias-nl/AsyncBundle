@@ -101,8 +101,8 @@ class EventbusSetup
             ->willReturn(true);
         $this->sendersLocatorContainer->expects(new AnyInvokedCountMatcher())
             ->method('get')
-            ->willReturnCallback(function ($transportName) use ($transports) {
-                return $transports[$transportName];
+            ->willReturnCallback(function ($transportName) {
+                return $this->transports[$transportName];
             });
 
         $this->sendersLocator = new SendersLocator(

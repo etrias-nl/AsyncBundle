@@ -2,9 +2,11 @@
 
 namespace Tests\Etrias\AsyncBundle\Integration\Messenger\Transport;
 
+use PHPUnit\Framework\Assert;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\Stamp\SentStamp;
 use Symfony\Component\Messenger\Worker;
 use Tests\Etrias\AsyncBundle\Fixtures\DummyMessage;
 use parallel\Runtime;
@@ -13,14 +15,37 @@ use Tests\Etrias\AsyncBundle\Fixtures\EventbusSetup;
 
 class NatsTransportTest extends KernelTestCase
 {
+    /** @var Future[]  */
+    private array $futuresList = [];
 
     public function testDispatchToNats()
     {
         $channel = new Channel();
-        $eventBusSetup = new EventbusSetup($channel);
 
+        $threadedWorker = new Runtime();
+        $this->futuresList[] = $threadedWorker->run(self::getWorkerTask(), [$channel]);
 
-        $runWorker = function (Channel $channel) {
+        $message = uniqid('Message_');
+        $threadedPublisher = new Runtime();
+        $this->futuresList[] = $threadedPublisher->run(self::getPublisherTask(), [$channel, $message]);
+
+        $this->assertSame('Handled '.$message, $channel->recv());
+        $channel->close();
+    }
+
+    public function testTimeout()
+    {
+
+    }
+
+    public function testReconnectAfterTimeout()
+    {
+
+    }
+
+    static private function getWorkerTask(): \Closure
+    {
+        return function (Channel $channel) {
             require_once(__DIR__.'/../../../../vendor/autoload.php');
             $eventBusSetup = new EventbusSetup($channel);
 
@@ -37,41 +62,19 @@ class NatsTransportTest extends KernelTestCase
                 $eventBusSetup->getEventDispatcher());
 
             $worker->run();
-
-            //return 'throwable';
         };
+    }
 
-        $runDispatcher = function(Channel $channel) {
+    static private function getPublisherTask(): \Closure
+    {
+        return function(Channel $channel, $message) {
             require_once(__DIR__.'/../../../../vendor/autoload.php');
             $eventBusSetup = new EventbusSetup($channel);
 
-            $envelope = new Envelope(new DummyMessage('API'));
+            $envelope = new Envelope(new DummyMessage($message));
             $envelope = $eventBusSetup->getMessageBus()->dispatch($envelope);
+
+            Assert::assertNotNull($envelope->last(SentStamp::class));
         };
-
-        var_dump('before start worker');
-
-        $threadedWorker = new Runtime();
-        $threadedWorker->run($runWorker, [$channel, 'nats']);
-        var_dump('after start worker');
-
-        // send the message
-        var_dump('before dispatch envelope');
-        $threadedDispatcher = new Runtime();
-        $threadedDispatcher->run($runDispatcher. [$channel]);
-        var_dump('after dispatch envelope');
-
-        $channel->close();
-        var_dump('end');
-    }
-
-    public function testTimeout()
-    {
-
-    }
-
-    public function testReconnectAfterTimeout()
-    {
-
     }
 }

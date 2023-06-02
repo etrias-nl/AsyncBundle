@@ -26,7 +26,6 @@ class DummyTestHandler
         }
 
         $this->channel->Send('Handled ' . $message->getMessage());
-        var_dump($message->getMessage());
     }
 
     public function getTimesCalled(): int
