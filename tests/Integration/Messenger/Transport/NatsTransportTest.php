@@ -15,22 +15,40 @@ use Tests\Etrias\AsyncBundle\Fixtures\EventbusSetup;
 
 class NatsTransportTest extends KernelTestCase
 {
-    /** @var Future[]  */
-    private array $futuresList = [];
-
-    public function testDispatchToNats()
+    public function testDispatchOneMessageToNatsWhenWorkerIsAlreadyRunning()
     {
         $channel = new Channel();
 
         $threadedWorker = new Runtime();
-        $this->futuresList[] = $threadedWorker->run(self::getWorkerTask(), [$channel]);
+        $threadedWorker->run(self::getWorkerTask(), [$channel]);
 
         $message = uniqid('Message_');
         $threadedPublisher = new Runtime();
-        $this->futuresList[] = $threadedPublisher->run(self::getPublisherTask(), [$channel, $message]);
+        $threadedPublisher->run(self::getPublisherTask(), [$channel, $message]);
 
         $this->assertSame('Handled '.$message, $channel->recv());
         $channel->close();
+
+        $threadedWorker->kill();
+        $threadedPublisher->kill();
+    }
+
+    public function testDispatchOneMessageToNatsWhenWorkerIsStartedLater()
+    {
+        $channel = new Channel();
+
+        $message = uniqid('Message_');
+        $threadedPublisher = new Runtime();
+        $threadedPublisher->run(self::getPublisherTask(), [$channel, $message]);
+
+        $threadedWorker = new Runtime();
+        $threadedWorker->run(self::getWorkerTask(), [$channel]);
+
+        $this->assertSame('Handled '.$message, $channel->recv());
+        $channel->close();
+
+        $threadedWorker->kill();
+        $threadedPublisher->kill();
     }
 
     public function testTimeout()

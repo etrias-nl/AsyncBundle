@@ -44,7 +44,6 @@ class NatsTransport implements TransportInterface, ResetInterface
         });
 
         $this->client->wait(1);
-        var_dump($receivedMessages);
 
         #todo try/catch
         return $receivedMessages;
