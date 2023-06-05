@@ -19,11 +19,11 @@ class NatsTransportTest extends KernelTestCase
     {
         $channel = new Channel();
 
-        $threadedWorker = new Runtime();
+        $threadedWorker = new Runtime(__DIR__.'/../../../../vendor/autoload.php');
         $threadedWorker->run(self::getWorkerTask(), [$channel]);
 
         $message = uniqid('Message_');
-        $threadedPublisher = new Runtime();
+        $threadedPublisher = new Runtime(__DIR__.'/../../../../vendor/autoload.php');
         $threadedPublisher->run(self::getPublisherTask(), [$channel, $message]);
 
         $this->assertSame('Handled '.$message, $channel->recv());
@@ -38,10 +38,10 @@ class NatsTransportTest extends KernelTestCase
         $channel = new Channel();
 
         $message = uniqid('Message_');
-        $threadedPublisher = new Runtime();
+        $threadedPublisher = new Runtime(__DIR__.'/../../../../vendor/autoload.php');
         $threadedPublisher->run(self::getPublisherTask(), [$channel, $message]);
 
-        $threadedWorker = new Runtime();
+        $threadedWorker = new Runtime(__DIR__.'/../../../../vendor/autoload.php');
         $threadedWorker->run(self::getWorkerTask(), [$channel]);
 
         $this->assertSame('Handled '.$message, $channel->recv());
@@ -64,7 +64,6 @@ class NatsTransportTest extends KernelTestCase
     static private function getWorkerTask(): \Closure
     {
         return function (Channel $channel) {
-            require_once(__DIR__.'/../../../../vendor/autoload.php');
             $eventBusSetup = new EventbusSetup($channel);
 
             $throwable = null;
@@ -86,7 +85,6 @@ class NatsTransportTest extends KernelTestCase
     static private function getPublisherTask(): \Closure
     {
         return function(Channel $channel, $message) {
-            require_once(__DIR__.'/../../../../vendor/autoload.php');
             $eventBusSetup = new EventbusSetup($channel);
 
             $envelope = new Envelope(new DummyMessage($message));
