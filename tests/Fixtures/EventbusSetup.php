@@ -21,7 +21,6 @@ use Symfony\Component\Messenger\Retry\MultiplierRetryStrategy;
 use Symfony\Component\Messenger\Transport\Sender\SendersLocator;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
-use parallel\Channel;
 
 class EventbusSetup
 {
@@ -45,11 +44,11 @@ class EventbusSetup
     private MessageBus $messageBus;
 
     private EventDispatcher $eventDispatcher;
-    private Channel $channel;
 
-    public function __construct(Channel $channel, string $natsHost = 'nats')
+    private MessageResultStore $messageResultStore;
+
+    public function __construct(string $natsHost = 'nats')
     {
-        $this->channel = $channel;
         $this->mockGenerator = new Generator();
         $this->serializer = new PhpSerializer();
         $this->natsClient = new Connection(new \Nats\ConnectionOptions([
@@ -60,6 +59,7 @@ class EventbusSetup
         $this->transports = [
             'nats' => $this->natsTransport,
         ];
+        $this->messageResultStore = new MessageResultStore();
         $this->setupSendersLocator();
         $this->setupRetryStrategyLocator();
         $this->setupHandlersLocator();
@@ -80,6 +80,11 @@ class EventbusSetup
     public function getTransports(): array
     {
         return $this->transports;
+    }
+
+    public function getMessageResultStore(): MessageResultStore
+    {
+        return $this->messageResultStore;
     }
 
     private function createMock(string $originalClassName): MockObject
@@ -125,7 +130,7 @@ class EventbusSetup
 
     private function setupHandlersLocator(): void
     {
-        $transportHandlerThatWorks = new DummyTestHandler($this->channel, false);
+        $transportHandlerThatWorks = new DummyTestHandler($this->messageResultStore, false);
 
         $this->handlersLocator = new HandlersLocator([
             DummyMessage::class => [

@@ -2,19 +2,16 @@
 
 namespace Tests\Etrias\AsyncBundle\Fixtures;
 
-use Symfony\Component\Messenger\Envelope;
-use parallel\Channel;
-
 class DummyTestHandler
 {
     private $timesCalled = 0;
-    private Channel $channel;
     private $shouldThrow;
+    private MessageResultStore $messageResultStore;
 
-    public function __construct(Channel $channel, bool $shouldThrow)
+    public function __construct(MessageResultStore $messageResultStore, bool $shouldThrow)
     {
-        $this->channel = $channel;
         $this->shouldThrow = $shouldThrow;
+        $this->messageResultStore = $messageResultStore;
     }
 
     public function __invoke(DummyMessage $message)
@@ -25,7 +22,7 @@ class DummyTestHandler
             throw new \Exception('Failure from call '.$this->timesCalled);
         }
 
-        $this->channel->Send('Handled ' . $message->getMessage());
+        $this->messageResultStore->addResult('Handled '.$message->getMessage());
     }
 
     public function getTimesCalled(): int
