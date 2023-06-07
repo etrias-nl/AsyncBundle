@@ -6,6 +6,8 @@ services:
     command:
       - '--jetstream'
       - '--debug'
+      - '--http_port'
+      - '8222'
     ports:
       - "4222:4222"
       - "6222:6222"

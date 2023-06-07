@@ -2,8 +2,9 @@
 
 namespace Tests\Etrias\AsyncBundle\Fixtures;
 
-use Etrias\AsyncBundle\Messenger\Transport\NatsTransport;
-use Nats\Connection;
+use Etrias\AsyncBundle\Messenger\Transport\NatsStreamingTransport;
+use NatsStreaming\Connection;
+use NatsStreaming\ConnectionOptions;
 use PHPUnit\Framework\MockObject\Generator;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
@@ -30,7 +31,7 @@ class EventbusSetup
 
     private Connection $natsClient;
 
-    private NatsTransport $natsTransport;
+    private NatsStreamingTransport $natsTransport;
 
     private array $transports;
 
@@ -51,13 +52,15 @@ class EventbusSetup
     {
         $this->mockGenerator = new Generator();
         $this->serializer = new PhpSerializer();
-        $this->natsClient = new Connection(new \Nats\ConnectionOptions([
-            'host' => $natsHost
+        $this->natsClient = new Connection(new ConnectionOptions([
+            'natsOptions' => new \Nats\ConnectionOptions([
+                'host' => $natsHost
+            ])
         ]));
-        $this->natsTransport = new NatsTransport($this->natsClient, $this->serializer, 'queue', timeout: 3);
+        $this->natsTransport = new NatsStreamingTransport($this->natsClient, $this->serializer, 'queue', timeout: 3);
 
         $this->transports = [
-            'nats' => $this->natsTransport,
+            'natsstreaming' => $this->natsTransport,
         ];
         $this->messageResultStore = new MessageResultStore();
         $this->setupSendersLocator();
@@ -111,7 +114,7 @@ class EventbusSetup
             });
 
         $this->sendersLocator = new SendersLocator(
-            [DummyMessage::class => ['nats']],
+            [DummyMessage::class => ['natsstreaming']],
             $this->sendersLocatorContainer
         );
     }
@@ -135,7 +138,7 @@ class EventbusSetup
         $this->handlersLocator = new HandlersLocator([
             DummyMessage::class => [
                 new HandlerDescriptor($transportHandlerThatWorks, [
-                    'from_transport' => 'nats',
+                    'from_transport' => 'natsstreaming',
                 ]),
             ],
         ]);

@@ -2,8 +2,9 @@
 
 namespace Etrias\AsyncBundle\Messenger\Transport;
 
-use Nats\Connection;
+use NatsStreaming\Connection;
 use Nats\Message;
+use NatsStreaming\SubscriptionOptions;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
@@ -11,7 +12,7 @@ use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
-class NatsTransport implements TransportInterface, ResetInterface
+class NatsStreamingTransport implements TransportInterface, ResetInterface
 {
     protected Connection $client;
     protected SerializerInterface $serializer;
@@ -39,13 +40,20 @@ class NatsTransport implements TransportInterface, ResetInterface
         $receivedMessages = [];
 
         $this->connect();
-        $this->client->subscribe($this->subject, function(Message $message) use (&$receivedMessages) {
-            $receivedMessages[] = $this->serializer->decode(['body' => $message->getBody()]);
-        });
+        $subscriptionOptions = new SubscriptionOptions();
+        $subscription = $this->client->subscribe(
+            $this->subject,
+            function(Message $message) use (&$receivedMessages) {
+                $receivedMessages[] = $this->serializer->decode(['body' => $message->getBody()]);
+            },
+            $subscriptionOptions
+        );
 
-        $this->client->wait(1);
+        $subscription->wait(1);
+//        $this->client->close();
 
         #todo try/catch
+        var_dump($receivedMessages);
         return $receivedMessages;
     }
 
@@ -70,9 +78,14 @@ class NatsTransport implements TransportInterface, ResetInterface
 
         try {
             $this->connect();
-            $this->client->publish($this->subject, $encodedMessage['body'], $this->inbox);
+            $natsRequest = $this->client->publish($this->subject, $encodedMessage['body'], $this->inbox);
         } catch (\Throwable $exception) {
             throw new TransportException($exception->getMessage(), 0, $exception);
+        }
+
+        $gotAck = $natsRequest->wait();
+        if (!$gotAck) {
+            throw new TransportException('Message not acked by server');
         }
 
         //If possible we want to add a TransportMessageIdStamp with the message id

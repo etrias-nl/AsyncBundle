@@ -2,27 +2,27 @@
 
 namespace Tests\Etrias\AsyncBundle\Unit\Messenger\Transport;
 
-use Etrias\AsyncBundle\Messenger\Transport\NatsTransport;
-use Etrias\AsyncBundle\Messenger\Transport\NatsTransportFactory;
-use Nats\Connection;
-use Nats\ConnectionOptions;
+use Etrias\AsyncBundle\Messenger\Transport\NatsStreamingTransport;
+use Etrias\AsyncBundle\Messenger\Transport\NatsStreamingTransportFactory;
+use NatsStreaming\Connection;
+use NatsStreaming\ConnectionOptions;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
-class NatsTransportFactoryTest extends TestCase
+class NatsStreamingTransportFactoryTest extends TestCase
 {
-    private NatsTransportFactory $factory;
+    private NatsStreamingTransportFactory $factory;
     private SerializerInterface $serializer;
 
     public function setUp(): void
     {
-        $this->factory = new NatsTransportFactory();
+        $this->factory = new NatsStreamingTransportFactory();
         $this->serializer = $this->createMock(SerializerInterface::class);
     }
 
     public function testSupportsTransport()
     {
-        $this->assertTrue($this->factory->supports('nats://localhost:4222', []));
+        $this->assertTrue($this->factory->supports('natsstreaming://localhost:4222', []));
         $this->assertFalse($this->factory->supports('sync://', []));
     }
 
@@ -31,14 +31,18 @@ class NatsTransportFactoryTest extends TestCase
         $transport = $this->factory->createTransport('nats://username:password@nats:4222?subject=queue1&inbox=inbox1&non_processed=value', [], $this->serializer);
 
         $this->assertEquals(
-            new NatsTransport(
+            new NatsStreamingTransport(
                 new Connection(
                     new ConnectionOptions(
                         [
-                            'host' => 'nats',
-                            'port' => '4222',
-                            'user' => 'username',
-                            'pass' => 'password'
+                            'natsOptions' => new \Nats\ConnectionOptions(
+                                [
+                                    'host' => 'nats',
+                                    'port' => '4222',
+                                    'user' => 'username',
+                                    'pass' => 'password'
+                                ]
+                            )
                         ]
                     )
                 ),

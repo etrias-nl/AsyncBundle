@@ -22,15 +22,17 @@ class NatsTransportTest extends KernelTestCase
         $eventBusSetup = new EventbusSetup();
         $message = uniqid('Message_');
 
-        EventLoop::defer(function () use ($eventBusSetup, $message): void {
+//        EventLoop::defer(function () use ($eventBusSetup, $message): void {
             $this->runPublisher($eventBusSetup, $message);
-        });
+//            var_dump('published 1 message');
+//        });
 
-        EventLoop::defer(function () use ($eventBusSetup): void {
-            $this->runWorker($eventBusSetup);
-        });
-
-        EventLoop::run();
+//        EventLoop::delay(1, function () use ($eventBusSetup): void {
+//            var_dump('starting 1 worker');
+//            $this->runWorker($eventBusSetup);
+//        });
+//
+//        EventLoop::run();
 
         $this->assertCount(1, $eventBusSetup->getMessageResultStore());
     }

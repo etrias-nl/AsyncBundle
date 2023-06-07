@@ -2,13 +2,13 @@
 
 namespace Etrias\AsyncBundle\Messenger\Transport;
 
-use Nats\Connection;
-use Nats\ConnectionOptions;
+use NatsStreaming\Connection;
+use NatsStreaming\ConnectionOptions;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 
-class NatsTransportFactory implements TransportFactoryInterface
+class NatsStreamingTransportFactory implements TransportFactoryInterface
 {
 
     public function createTransport(string $dsn, array $options, SerializerInterface $serializer): TransportInterface
@@ -25,12 +25,14 @@ class NatsTransportFactory implements TransportFactoryInterface
         $options = array_intersect_key($urlParts, array_flip(['host', 'port', 'user', 'pass']));
 
         $client = new Connection(
-            new ConnectionOptions($options)
+            new ConnectionOptions([
+             'natsOptions' => new \Nats\ConnectionOptions($options)
+            ])
         );
 
 
 
-        return new NatsTransport(
+        return new NatsStreamingTransport(
             $client,
             $serializer,
             $queryParts['subject'],
@@ -41,6 +43,6 @@ class NatsTransportFactory implements TransportFactoryInterface
 
     public function supports(string $dsn, array $options): bool
     {
-        return 0 === strpos($dsn, 'nats://');
+        return 0 === strpos($dsn, 'natsstreaming://');
     }
 }
