@@ -15,15 +15,17 @@ use Tests\Etrias\AsyncBundle\Fixtures\EventbusSetup;
 
 class NatsTransportTest extends KernelTestCase
 {
+        public function testDispatchOneMessageToNats()
+    {
+        $this->testMessageHandling();
+    }
+
     public function testDispatchOneMessageToNatsWhenWorkerIsStartedLater()
     {
         $this->testMessageHandling(0, 1);
     }
 
-//    public function testDispatchOneMessageToNatsWhenWorkerIsAlreadyRunning()
-//    {
-//        $this->testMessageHandling(1, 0);
-//    }
+
 
     public function testTimeout()
     {
