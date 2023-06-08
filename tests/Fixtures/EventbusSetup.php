@@ -2,9 +2,9 @@
 
 namespace Tests\Etrias\AsyncBundle\Fixtures;
 
+use Basis\Nats\Client;
+use Basis\Nats\Configuration;
 use Etrias\AsyncBundle\Messenger\Transport\NatsStreamingTransport;
-use NatsStreaming\Connection;
-use NatsStreaming\ConnectionOptions;
 use PHPUnit\Framework\MockObject\Generator;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
@@ -29,7 +29,7 @@ class EventbusSetup
 
     private SerializerInterface $serializer;
 
-    private Connection $natsClient;
+    private Client $natsClient;
 
     private NatsStreamingTransport $natsTransport;
 
@@ -52,11 +52,11 @@ class EventbusSetup
     {
         $this->mockGenerator = new Generator();
         $this->serializer = new PhpSerializer();
-        $this->natsClient = new Connection(new ConnectionOptions([
-            'natsOptions' => new \Nats\ConnectionOptions([
+        $this->natsClient = new Client(
+            new Configuration([
                 'host' => $natsHost
             ])
-        ]));
+        );
         $this->natsTransport = new NatsStreamingTransport($this->natsClient, $this->serializer, 'queue', timeout: 3);
 
         $this->transports = [

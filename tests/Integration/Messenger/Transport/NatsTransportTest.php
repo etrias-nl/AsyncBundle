@@ -2,12 +2,10 @@
 
 namespace Tests\Etrias\AsyncBundle\Integration\Messenger\Transport;
 
-use PHPUnit\Framework\Assert;
 use Revolt\EventLoop;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
-use Symfony\Component\Messenger\EventListener\StopWorkerOnMessageLimitListener;
 use Symfony\Component\Messenger\Stamp\SentStamp;
 use Symfony\Component\Messenger\Worker;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
@@ -19,40 +17,12 @@ class NatsTransportTest extends KernelTestCase
 {
     public function testDispatchOneMessageToNatsWhenWorkerIsStartedLater()
     {
-        $eventBusSetup = new EventbusSetup();
-        $message = uniqid('Message_');
-
-//        EventLoop::defer(function () use ($eventBusSetup, $message): void {
-            $this->runPublisher($eventBusSetup, $message);
-//            var_dump('published 1 message');
-//        });
-
-//        EventLoop::delay(1, function () use ($eventBusSetup): void {
-//            var_dump('starting 1 worker');
-//            $this->runWorker($eventBusSetup);
-//        });
-//
-//        EventLoop::run();
-
-        $this->assertCount(1, $eventBusSetup->getMessageResultStore());
+        $this->testMessageHandling(0, 1);
     }
 
 //    public function testDispatchOneMessageToNatsWhenWorkerIsAlreadyRunning()
 //    {
-//        $channel = new Channel();
-//
-//        $message = uniqid('Message_');
-//        $threadedPublisher = new Runtime(__DIR__.'/../../../../vendor/autoload.php');
-//        $threadedPublisher->run(self::getPublisherTask(), [$channel, $message]);
-//
-//        $threadedWorker = new Runtime(__DIR__.'/../../../../vendor/autoload.php');
-//        $threadedWorker->run(self::getWorkerTask(), [$channel]);
-//
-//        $this->assertSame('Handled '.$message, $channel->recv());
-//        $channel->close();
-//
-//        $threadedWorker->kill();
-//        $threadedPublisher->kill();
+//        $this->testMessageHandling(1, 0);
 //    }
 
     public function testTimeout()
@@ -63,6 +33,31 @@ class NatsTransportTest extends KernelTestCase
     public function testReconnectAfterTimeout()
     {
 
+    }
+
+    public function testExactlyOnceDelivery()
+    {
+
+    }
+
+    private function testMessageHandling(int $delayPublisher = 0, int $delayWorker = 0)
+    {
+        $eventBusSetup = new EventbusSetup();
+        $message = uniqid('Message_');
+
+        EventLoop::delay($delayPublisher, function () use ($eventBusSetup, $message): void {
+            $this->runPublisher($eventBusSetup, $message);
+        });
+
+        EventLoop::delay($delayWorker, function () use ($eventBusSetup): void {
+
+            $this->runWorker($eventBusSetup);
+        });
+
+        EventLoop::run();
+
+        $this->assertCount(1, $eventBusSetup->getMessageResultStore());
+        $this->assertSame('Handled '.$message, $eventBusSetup->getMessageResultStore()->getIterator()[0]);
     }
 
     private function runWorker(EventbusSetup $eventBusSetup): void
@@ -85,7 +80,6 @@ class NatsTransportTest extends KernelTestCase
     private function runPublisher(EventbusSetup $eventBusSetup, $message): void
     {
         $envelope = new Envelope(new DummyMessage($message));
-        $envelope = $eventBusSetup->getMessageBus()->dispatch($envelope);
         $envelope = $eventBusSetup->getMessageBus()->dispatch($envelope);
 
         $this->assertNotNull($envelope->last(SentStamp::class));

@@ -2,10 +2,10 @@
 
 namespace Tests\Etrias\AsyncBundle\Unit\Messenger\Transport;
 
+use Basis\Nats\Client;
+use Basis\Nats\Configuration;
 use Etrias\AsyncBundle\Messenger\Transport\NatsStreamingTransport;
 use Etrias\AsyncBundle\Messenger\Transport\NatsStreamingTransportFactory;
-use NatsStreaming\Connection;
-use NatsStreaming\ConnectionOptions;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
@@ -28,28 +28,26 @@ class NatsStreamingTransportFactoryTest extends TestCase
 
     public function testCreateTransport()
     {
-        $transport = $this->factory->createTransport('nats://username:password@nats:4222?subject=queue1&inbox=inbox1&non_processed=value', [], $this->serializer);
+        $transport = $this->factory->createTransport('nats://username:password@nats:4222?stream=queue1&inbox=inbox1&non_processed=value', [], $this->serializer);
 
         $this->assertEquals(
             new NatsStreamingTransport(
-                new Connection(
-                    new ConnectionOptions(
+                new Client(
+                    new Configuration(
                         [
-                            'natsOptions' => new \Nats\ConnectionOptions(
-                                [
-                                    'host' => 'nats',
-                                    'port' => '4222',
-                                    'user' => 'username',
-                                    'pass' => 'password'
-                                ]
-                            )
+                            'host' => 'nats',
+                            'port' => 4222,
+                            'user' => 'username',
+                            'pass' => 'password'
                         ]
                     )
                 ),
                 $this->serializer,
                 'queue1',
+                'queue1',
                 'inbox1'
             ),
-        $transport);
+            $transport
+        );
     }
 }

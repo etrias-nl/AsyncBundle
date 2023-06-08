@@ -15,7 +15,7 @@
         "liip/monitor-bundle": "Monitor gearman servers",
         "symfony/stopwatch": "Add metrics in logging",
         "symfony/messenger": "Use symfony messenger for async handling",
-        "byrnedo/php-nats-streaming": "PHP Client for nats-streaming-server (only supported by symfony messenger)",
+        "basis-company/nats": "PHP Client for nats-streaming-server (only supported by symfony messenger)",
         "jmose/command-scheduler-bundle": "Schedule commands and execute them async",
         "symfony/process": "Required for async command handling"
     },
@@ -45,6 +45,6 @@
         "phpunit/phpunit": "^10.1",
         "symfony/messenger": "^6.2",
         "revolt/event-loop": "^1.0",
-        "byrnedo/php-nats-streaming": "^0.2.4"
+        "basis-company/nats": "^0.13.1"
     }
 }

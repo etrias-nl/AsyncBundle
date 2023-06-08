@@ -2,35 +2,44 @@
 
 namespace Etrias\AsyncBundle\Messenger\Transport;
 
-use NatsStreaming\Connection;
-use Nats\Message;
-use NatsStreaming\SubscriptionOptions;
+use Basis\Nats\Client;
+use Basis\Nats\Consumer\Consumer;
+use Basis\Nats\Message\Payload;
+use Basis\Nats\Stream\RetentionPolicy;
+use Basis\Nats\Stream\StorageBackend;
+use Basis\Nats\Stream\Stream;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
+use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 class NatsStreamingTransport implements TransportInterface, ResetInterface
 {
-    protected Connection $client;
+    protected Client $client;
     protected SerializerInterface $serializer;
+    protected string $streamName;
+    protected ?Stream $stream = null;
+    protected ?Consumer $consumer = null;
     protected string $subject;
     protected ?string $inbox;
     protected ?int $timeout;
 
     public function __construct(
-        Connection $client,
+        Client              $client,
         SerializerInterface $serializer,
-        string $subject,
-        string $inbox = null,
-        int $timeout = null
+        string              $streamName,
+        string              $subject = null,
+        string              $inbox = null,
+        int                 $timeout = null
     )
     {
         $this->client = $client;
         $this->serializer = $serializer;
-        $this->subject = $subject;
+        $this->streamName = $streamName;
+        $this->subject = $subject ?? $streamName;
         $this->inbox = $inbox;
         $this->timeout = $timeout;
     }
@@ -40,20 +49,13 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
         $receivedMessages = [];
 
         $this->connect();
-        $subscriptionOptions = new SubscriptionOptions();
-        $subscription = $this->client->subscribe(
-            $this->subject,
-            function(Message $message) use (&$receivedMessages) {
-                $receivedMessages[] = $this->serializer->decode(['body' => $message->getBody()]);
-            },
-            $subscriptionOptions
-        );
-
-        $subscription->wait(1);
-//        $this->client->close();
+        // consumer would be created would on first handle call
+        $this->getConsumer()->handle(function (Payload $message) use (&$receivedMessages) {
+            $receivedMessages[] = $this->serializer->decode(['body' => $message->body]);
+        });
 
         #todo try/catch
-        var_dump($receivedMessages);
+
         return $receivedMessages;
     }
 
@@ -78,25 +80,64 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
 
         try {
             $this->connect();
-            $natsRequest = $this->client->publish($this->subject, $encodedMessage['body'], $this->inbox);
+
+            //TODO make deduplication optional
+            $body = $encodedMessage['body'];
+            $messageId = $this->hashMessage($body);
+            $payload = new Payload($body, [
+                'Nats-Msg-Id' => $messageId
+            ]);
+
+            $this->client->publish($this->subject, $payload, $this->inbox);
         } catch (\Throwable $exception) {
             throw new TransportException($exception->getMessage(), 0, $exception);
         }
 
-        $gotAck = $natsRequest->wait();
-        if (!$gotAck) {
-            throw new TransportException('Message not acked by server');
-        }
-
-        //If possible we want to add a TransportMessageIdStamp with the message id
-
-        return $envelope;
+        return $envelope->with(new TransportMessageIdStamp($messageId));
     }
 
     private function connect()
     {
-        if (!$this->client->isConnected()) {
-            $this->client->connect($this->timeout);
+        // initiate stream()
+        $this->getStream();
+        $this->client->ping();
+    }
+
+    private function getStream(): Stream
+    {
+        if (!$this->stream) {
+            $this->stream = $this->client->getApi()->getStream($this->streamName);
+            //TODO make it configurable
+            $this->stream->getConfiguration()
+                ->setRetentionPolicy(RetentionPolicy::WORK_QUEUE)
+                ->setStorageBackend(StorageBackend::MEMORY)
+                ->setSubjects([$this->subject]);
+
+            $this->stream->createIfNotExists();
         }
+
+        return $this->stream;
+    }
+
+    private function getConsumer(): Consumer
+    {
+        if (!$this->consumer) {
+            $this->consumer = $this->getStream()->getConsumer($this->streamName);
+            $this->consumer->getConfiguration()->setSubjectFilter($this->subject);
+            $this->consumer->setIterations(1);
+        }
+
+        return $this->consumer;
+    }
+
+    private function hashMessage(string $body): string
+    {
+        $algo = 'sha1';
+
+        if (version_compare(PHP_VERSION, '8.1.0', '>=')) {
+            $algo = 'xxh128';
+        }
+
+        return hash($algo, $body);
     }
 }
