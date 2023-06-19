@@ -48,13 +48,15 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
     {
         $receivedMessages = [];
 
-        $this->connect();
-        // consumer would be created would on first handle call
-        $this->getConsumer()->handle(function (Payload $message) use (&$receivedMessages) {
-            $receivedMessages[] = $this->serializer->decode(['body' => $message->body]);
-        });
-
-        #todo try/catch
+        try {
+            $this->connect();
+            // consumer would be created on first handle call
+            $this->getConsumer()->handle(function (Payload $message) use (&$receivedMessages) {
+                $receivedMessages[] = $this->serializer->decode(['body' => $message->body]);
+            });
+        } catch (\Throwable $exception) {
+            throw new TransportException($exception->getMessage(), 0, $exception);
+        }
 
         return $receivedMessages;
     }
@@ -62,6 +64,7 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
     public function ack(Envelope $envelope): void
     {
         //no-op, because ack is already handled by get.
+        //TODO ack must be arranged for correct exactly once delivery
     }
 
     public function reject(Envelope $envelope): void
@@ -98,8 +101,7 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
 
     private function connect()
     {
-        // initiate stream()
-        $this->getStream();
+        $this->getStream(); // initiate stream
         $this->client->ping();
     }
 

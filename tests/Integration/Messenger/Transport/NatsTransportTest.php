@@ -6,10 +6,9 @@ use Revolt\EventLoop;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\Exception\TransportException;
 use Symfony\Component\Messenger\Stamp\SentStamp;
 use Symfony\Component\Messenger\Worker;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
-use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Tests\Etrias\AsyncBundle\Fixtures\DummyMessage;
 use Tests\Etrias\AsyncBundle\Fixtures\EventbusSetup;
 
@@ -25,19 +24,21 @@ class NatsTransportTest extends KernelTestCase
         $this->testMessageHandling(0, 1);
     }
 
-
-
     public function testTimeout()
     {
+        $this->expectException(TransportException::class);
 
+        $eventBusSetup = new EventbusSetup('unreachable.nats.org');
+        $this->runWorker($eventBusSetup);
     }
 
-    public function testReconnectAfterTimeout()
+
+    public function testExactlyOnceDelivery()
     {
 
     }
 
-    public function testExactlyOnceDelivery()
+    public function reject()
     {
 
     }
