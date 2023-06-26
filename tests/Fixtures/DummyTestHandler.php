@@ -22,7 +22,7 @@ class DummyTestHandler
             throw new \Exception('Failure from call '.$this->timesCalled);
         }
 
-        $this->messageResultStore->addResult('Handled '.$message->getMessage());
+        echo 'Handled '.$message->getMessage(). "\r\n";
     }
 
     public function getTimesCalled(): int

@@ -1,0 +1,24 @@
+#!/usr/bin/env php
+<?php
+
+use Symfony\Component\Messenger\Envelope;
+use Tests\Etrias\AsyncBundle\Fixtures\DummyMessage;
+use Tests\Etrias\AsyncBundle\Fixtures\EventbusSetup;
+
+require_once(__DIR__."/../../../vendor/autoload.php");
+
+$eventBusSetup = new EventbusSetup();
+
+$message = $argv[1] ?? null;
+if(null === $message) {
+    throw new InvalidArgumentException('missing message');
+}
+
+$delay = $argv[2] ?? 0;
+
+if ($delay > 0) {
+    sleep($delay);
+}
+
+$envelope = new Envelope(new DummyMessage($message));
+$envelope = $eventBusSetup->getMessageBus()->dispatch($envelope);

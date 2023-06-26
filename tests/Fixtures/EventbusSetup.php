@@ -13,6 +13,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Messenger\EventListener\AddErrorDetailsStampListener;
 use Symfony\Component\Messenger\EventListener\SendFailedMessageForRetryListener;
 use Symfony\Component\Messenger\EventListener\StopWorkerOnMessageLimitListener;
+use Symfony\Component\Messenger\EventListener\StopWorkerOnTimeLimitListener;
 use Symfony\Component\Messenger\Handler\HandlerDescriptor;
 use Symfony\Component\Messenger\Handler\HandlersLocator;
 use Symfony\Component\Messenger\MessageBus;
@@ -54,7 +55,8 @@ class EventbusSetup
         $this->serializer = new PhpSerializer();
         $this->natsClient = new Client(
             new Configuration([
-                'host' => $natsHost
+                'host' => $natsHost,
+                'reconnect' => false
             ])
         );
         $this->natsTransport = new NatsStreamingTransport($this->natsClient, $this->serializer, 'queue', timeout: 3);
@@ -160,6 +162,7 @@ class EventbusSetup
         $this->eventDispatcher->addSubscriber(new SendFailedMessageForRetryListener($this->sendersLocatorContainer, $this->retryStrategyLocator));
 
 //        $this->eventDispatcher->addSubscriber(new SendFailedMessageToFailureTransportListener($sendersLocatorFailureTransport));
-        $this->eventDispatcher->addSubscriber(new StopWorkerOnMessageLimitListener(1));
+        $this->eventDispatcher->addSubscriber(new StopWorkerOnTimeLimitListener(3));
+
     }
 }

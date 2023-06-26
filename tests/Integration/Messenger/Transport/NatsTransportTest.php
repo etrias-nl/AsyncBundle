@@ -2,40 +2,39 @@
 
 namespace Tests\Etrias\AsyncBundle\Integration\Messenger\Transport;
 
-use Revolt\EventLoop;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Exception\TransportException;
-use Symfony\Component\Messenger\Stamp\SentStamp;
-use Symfony\Component\Messenger\Worker;
-use Tests\Etrias\AsyncBundle\Fixtures\DummyMessage;
+use Symfony\Component\Process\Process;
 use Tests\Etrias\AsyncBundle\Fixtures\EventbusSetup;
 
 class NatsTransportTest extends KernelTestCase
 {
-        public function testDispatchOneMessageToNats()
+    public function testDispatchOneMessageToNats()
     {
         $this->testMessageHandling();
     }
-
+//
     public function testDispatchOneMessageToNatsWhenWorkerIsStartedLater()
     {
-        $this->testMessageHandling(0, 1);
+        $this->testMessageHandling(1,1,0, 1);
     }
 
     public function testTimeout()
     {
-        $this->expectException(TransportException::class);
+        $process = $this->runWorker('unreachable.nats');
+        do {
+            // wait for the given time
+            sleep(1);
 
-        $eventBusSetup = new EventbusSetup('unreachable.nats.org');
-        $this->runWorker($eventBusSetup);
+            if (!$process->isRunning()) {
+                $this->assertStringContainsString(TransportException::class, $process->getOutput());
+            }
+        } while ($process->isRunning());
     }
-
 
     public function testExactlyOnceDelivery()
     {
-
+        $this->testMessageHandling(50, 2, 2);
     }
 
     public function reject()
@@ -43,48 +42,66 @@ class NatsTransportTest extends KernelTestCase
 
     }
 
-    private function testMessageHandling(int $delayPublisher = 0, int $delayWorker = 0)
+    private function testMessageHandling(int $numWorkers = 1, int $numMessages = 1, int $delayPublisher = 0, int $delayWorker = 0, ?int $timeout = null)
     {
+        /** @var array<Process> $processes */
+        $processes = [];
+
+        $expectedResults = [];
+
         $eventBusSetup = new EventbusSetup();
-        $message = uniqid('Message_');
 
-        EventLoop::delay($delayPublisher, function () use ($eventBusSetup, $message): void {
-            $this->runPublisher($eventBusSetup, $message);
-        });
+        for ($i = 0; $i < $numMessages; $i++) {
+            $message = uniqid('Message_');
+            $expectedResults[] = 'Handled '.$message;
 
-        EventLoop::delay($delayWorker, function () use ($eventBusSetup): void {
+            $this->runPublisher($message, $delayPublisher);
+        }
 
-            $this->runWorker($eventBusSetup);
-        });
+        sort($expectedResults);
+        for ($i = 0; $i < $numWorkers; $i++) {
+            $processes[] = $this->runWorker(null, $delayWorker);
+        }
 
-        EventLoop::run();
+        do {
+            // wait for the given time
+            sleep(1);
 
-        $this->assertCount(1, $eventBusSetup->getMessageResultStore());
-        $this->assertSame('Handled '.$message, $eventBusSetup->getMessageResultStore()->getIterator()[0]);
+            // remove all finished processes from the stack
+            foreach ($processes as $index => $process) {
+                if (!$process->isRunning()) {
+                    foreach (explode("\r\n",$process->getOutput()) as $line) {
+                        if (empty($line)) {
+                            continue;
+                        }
+                        $eventBusSetup->getMessageResultStore()->addResult($line);
+                    }
+                    unset($processes[$index]);
+                }
+            }
+        } while (count($processes) > 0);
+
+
+        $results = iterator_to_array($eventBusSetup->getMessageResultStore()->getIterator());
+        sort($results);
+        $this->assertSame($expectedResults, $results);
     }
 
-    private function runWorker(EventbusSetup $eventBusSetup): void
+    private function runWorker(?string $host = null, int $delay = 0): Process
     {
-        $throwable = null;
-        $failedListener = function (WorkerMessageFailedEvent $event) use (&$throwable) {
-            $throwable = $event->getThrowable();
-        };
-        $eventBusSetup->getEventDispatcher()->addListener(WorkerMessageFailedEvent::class, $failedListener);
+        $host ??= 'nats';
 
-        $worker = new Worker(
-            $eventBusSetup->getTransports(),
-            $eventBusSetup->getMessageBus(),
-            $eventBusSetup->getEventDispatcher()
-        );
+        $process = new Process([__DIR__.'/../../../Fixtures/bin/worker', $host, $delay]);
+        $process->start();
 
-        $worker->run();
+        return $process;
     }
 
-    private function runPublisher(EventbusSetup $eventBusSetup, $message): void
+    private function runPublisher($message, int $delay = 0): Process
     {
-        $envelope = new Envelope(new DummyMessage($message));
-        $envelope = $eventBusSetup->getMessageBus()->dispatch($envelope);
+        $process = new Process([__DIR__.'/../../../Fixtures/bin/publisher', $message, $delay]);
+        $process->start();
 
-        $this->assertNotNull($envelope->last(SentStamp::class));
+        return $process;
     }
 }

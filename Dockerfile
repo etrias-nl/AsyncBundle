@@ -1,4 +1,4 @@
-ARG PHPVERSION=8.2
+ARG PHPVERSION=8.1
 
 FROM composer:2.5 as composer
 
@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       && rm -rf /var/lib/apt/lists/*
 
 RUN pecl install parallel && docker-php-ext-enable parallel
-RUN docker-php-ext-configure opcache --enable-opcache \
-    && docker-php-ext-install opcache
 
 # hadolint ignore=DL3003
 RUN cd /tmp \
