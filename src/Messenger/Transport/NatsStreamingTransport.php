@@ -8,6 +8,7 @@ use Basis\Nats\Message\Payload;
 use Basis\Nats\Stream\RetentionPolicy;
 use Basis\Nats\Stream\StorageBackend;
 use Basis\Nats\Stream\Stream;
+use Ramsey\Uuid\Uuid;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
@@ -26,6 +27,7 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
     protected string $subject;
     protected ?string $inbox;
     protected ?int $timeout;
+    private bool $deduplication;
 
     public function __construct(
         Client              $client,
@@ -33,7 +35,8 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
         string              $streamName,
         string              $subject = null,
         string              $inbox = null,
-        int                 $timeout = null
+        int                 $timeout = null,
+        bool                $deduplication = false
     )
     {
         $this->client = $client;
@@ -42,6 +45,7 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
         $this->subject = $subject ?? $streamName;
         $this->inbox = $inbox;
         $this->timeout = $timeout;
+        $this->deduplication = $deduplication;
     }
 
     public function get(): iterable
@@ -84,9 +88,8 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
         try {
             $this->connect();
 
-            //TODO make deduplication optional
             $body = $encodedMessage['body'];
-            $messageId = $this->hashMessage($body);
+            $messageId = $this->deduplication ? $this->hashMessage($body) : Uuid::uuid4();
             $payload = new Payload($body, [
                 'Nats-Msg-Id' => $messageId
             ]);

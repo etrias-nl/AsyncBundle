@@ -37,6 +37,40 @@ class NatsTransportTest extends KernelTestCase
         $this->testMessageHandling(50, 2, 2);
     }
 
+    public function testDeduplicationEnabled()
+    {
+        $duplicatedMessage = 'Same message';
+        $results = [];
+        $this->runPublisher($duplicatedMessage, 0, true);
+        $this->runPublisher($duplicatedMessage, 0, true);
+
+        $worker = $this->runWorker();
+        $worker->wait(function ($type, $buffer) use (&$results): void {
+            if (Process::OUT === $type) {
+                $results[] = trim($buffer);
+            }
+        });
+
+        $this->assertSame(['Handled Same message'], $results);
+    }
+
+    public function testDeduplicationDisabled()
+    {
+        $duplicatedMessage = 'Same message';
+        $results = [];
+        $this->runPublisher($duplicatedMessage, 0, false);
+        $this->runPublisher($duplicatedMessage, 0, false);
+
+        $worker = $this->runWorker();
+        $worker->wait(function ($type, $buffer) use (&$results): void {
+            if (Process::OUT === $type) {
+                $results[] = trim($buffer);
+            }
+        });
+
+        $this->assertSame(['Handled Same message', 'Handled Same message'], $results);
+    }
+
     public function reject()
     {
 
@@ -97,9 +131,9 @@ class NatsTransportTest extends KernelTestCase
         return $process;
     }
 
-    private function runPublisher($message, int $delay = 0): Process
+    private function runPublisher($message, int $delay = 0, bool $deduplication = false): Process
     {
-        $process = new Process([__DIR__.'/../../../Fixtures/bin/publisher', $message, $delay]);
+        $process = new Process([__DIR__.'/../../../Fixtures/bin/publisher', $message, $delay, $deduplication]);
         $process->start();
 
         return $process;

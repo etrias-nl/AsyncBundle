@@ -49,8 +49,9 @@ class EventbusSetup
 
     private MessageResultStore $messageResultStore;
 
-    public function __construct(string $natsHost = 'nats')
+    public function __construct(string $natsHost = null, bool $deduplication = false)
     {
+        $natsHost ??= 'nats';
         $this->mockGenerator = new Generator();
         $this->serializer = new PhpSerializer();
         $this->natsClient = new Client(
@@ -59,7 +60,14 @@ class EventbusSetup
                 'reconnect' => false
             ])
         );
-        $this->natsTransport = new NatsStreamingTransport($this->natsClient, $this->serializer, 'queue', timeout: 3);
+        $this->natsTransport = new NatsStreamingTransport(
+            $this->natsClient,
+            $this->serializer,
+            'queue',
+            null,
+            null,
+            3,
+            $deduplication);
 
         $this->transports = [
             'natsstreaming' => $this->natsTransport,

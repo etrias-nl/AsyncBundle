@@ -34,7 +34,8 @@ class NatsStreamingTransportFactory implements TransportFactoryInterface
             $queryParts['stream'],
             $queryParts['subject'] ?? null,
             $queryParts['inbox'] ?? null,
-            $queryParts['timeout'] ?? null
+            $queryParts['timeout'] ?? null,
+            $options['deduplication'] ?? false
         );
     }
 
