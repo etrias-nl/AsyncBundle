@@ -14,6 +14,7 @@ use Dukecity\CommandSchedulerBundle\Entity\ScheduledCommand as DukecityScheduled
 use League\Tactician\CommandBus;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\SignalableCommandInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\StringInput;
@@ -21,12 +22,7 @@ use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
 
-/**
- * Class ExecuteCommand : This class is the entry point to execute all scheduled command.
- *
- * @author  Julien Guyon <julienguyon@hotmail.com>
- */
-class ExecuteCommand extends Command
+class ExecuteCommand extends Command implements SignalableCommandInterface
 {
     protected CommandBus $commandBus;
     protected ScheduledCommandProcessor $scheduledCommandProcessor;
@@ -35,23 +31,12 @@ class ExecuteCommand extends Command
     protected bool $dumpMode = false;
     protected ?int $stopWorkSignalReceived = null;
 
-    /**
-     * @var int
-     */
-    private int $commandsVerbosity;
-
-    /**
-     * ExecuteCommand constructor.
-     *
-     * @param ManagerRegistry $managerRegistry
-     */
     public function __construct(
         ManagerRegistry $managerRegistry,
         CommandBus $commandBus,
         LoggerInterface $cronLogger,
         ScheduledCommandProcessor $scheduledCommandProcessor
-    )
-    {
+    ) {
         if (class_exists(DukecityScheduledCommand::class)) {
             $this->em = $managerRegistry->getManagerForClass(DukecityScheduledCommand::class);
         } else {
@@ -61,24 +46,21 @@ class ExecuteCommand extends Command
         $this->logger = $cronLogger;
         $this->scheduledCommandProcessor = $scheduledCommandProcessor;
 
-        /**
-         * If the pcntl_signal exists, subscribe to the terminate and stop handling scheduled commands.
-         */
-        if(false !== function_exists('pcntl_signal'))
-        {
-            declare(ticks = 1);
-            pcntl_signal(SIGTERM, [$this, "handleSystemSignal"]);
-            pcntl_signal(SIGHUP,  [$this, "handleSystemSignal"]);
-
-        }
-
         parent::__construct();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
+    public function getSubscribedSignals(): array
+    {
+        return [SIGTERM, SIGHUP];
+    }
+
+    public function handleSignal(int $signal): void
+    {
+        $this->logger->info('Stop signal received', ['signo' => $signal]);
+        $this->stopWorkSignalReceived = $signo;
+    }
+
+    protected function configure(): void
     {
         $this
             ->setName('scheduler:execute')
@@ -89,37 +71,16 @@ class ExecuteCommand extends Command
             ->setHelp('This class is the entry point to execute all scheduled command');
     }
 
-    public function handleSystemSignal($signo)
-    {
-        $this->logger->debug('Stop signal received', ['signo' => $this->stopWorkSignalReceived]);
-        $this->stopWorkSignalReceived = $signo;
-    }
-
-    /**
-     * Initialize parameters and services used in execute function.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     */
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->dumpMode = $input->getOption('dump');
-
-        // Store the original verbosity before apply the quiet parameter
-        $this->commandsVerbosity = $output->getVerbosity();
 
         if (true === $input->getOption('no-output')) {
             $output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
         }
     }
 
-    /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
-     * @return int
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->logger->info('Start : '.($this->dumpMode ? 'Dump' : 'Execute').' all scheduled command');
 
@@ -173,16 +134,13 @@ class ExecuteCommand extends Command
         }
 
         if (true === $noneExecution) {
-            $this->logger->debug('Nothing to do.');
+            $this->logger->info('Nothing to do.');
         }
 
         return 0;
     }
 
-    /**
-     * @param JMoseScheduledCommand|DukecityScheduledCommand $scheduledCommand
-     */
-    private function executeCommand(object $scheduledCommand, OutputInterface $output, InputInterface $input)
+    private function executeCommand(JMoseScheduledCommand|DukecityScheduledCommand $scheduledCommand, OutputInterface $output, InputInterface $input): void
     {
         try {
             $consoleCommand = $this->getApplication()->find($scheduledCommand->getCommand());
