@@ -57,7 +57,7 @@ class ExecuteCommand extends Command implements SignalableCommandInterface
     public function handleSignal(int $signal): void
     {
         $this->logger->info('Stop signal received', ['signo' => $signal]);
-        $this->stopWorkSignalReceived = $signo;
+        $this->stopWorkSignalReceived = $signal;
     }
 
     protected function configure(): void
