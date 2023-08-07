@@ -27,11 +27,6 @@ use Symfony\Component\Stopwatch\Stopwatch;
 
 class EtriasAsyncExtension extends ConfigurableExtension
 {
-    /**
-     * Configures the passed container according to the merged configuration.
-     *
-     * @throws \Exception
-     */
     protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
         $xmlFileLoader = new XmlFileLoader(
