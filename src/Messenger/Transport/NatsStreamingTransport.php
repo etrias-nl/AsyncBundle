@@ -117,7 +117,15 @@ class NatsStreamingTransport implements TransportInterface, SetupableTransportIn
 
     public function getMessageCount(): int
     {
-        // TODO: Implement getMessageCount() method.
+        if (null === $info = $this->stream->info()) {
+            return 0;
+        }
+
+        if (null === $state = $info->getValue('state')) {
+            return 0;
+        }
+
+        return $state->messages;
     }
 
     public function setup(): void
