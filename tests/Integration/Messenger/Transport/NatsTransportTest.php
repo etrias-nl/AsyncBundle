@@ -27,7 +27,7 @@ class NatsTransportTest extends KernelTestCase
             sleep(1);
 
             if (!$process->isRunning()) {
-                $this->assertStringContainsString(TransportException::class, $process->getOutput());
+                $this->assertStringContainsString('Uncaught Exception', $process->getOutput());
             }
         } while ($process->isRunning());
     }

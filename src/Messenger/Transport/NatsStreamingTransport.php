@@ -13,11 +13,13 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
 use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
+use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
+use Symfony\Component\Messenger\Transport\SetupableTransportInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
-class NatsStreamingTransport implements TransportInterface, ResetInterface
+class NatsStreamingTransport implements TransportInterface, SetupableTransportInterface, MessageCountAwareInterface
 {
     protected Client $client;
     protected SerializerInterface $serializer;
@@ -55,7 +57,7 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
         try {
             $this->connect();
             // consumer would be created on first handle call
-            $this->getConsumer()->handle(function (Payload $message) use (&$receivedMessages) {
+            $this->consumer->handle(function (Payload $message) use (&$receivedMessages) {
                 $receivedMessages[] = $this->serializer->decode(['body' => $message->body]);
             });
         } catch (\Throwable $exception) {
@@ -74,11 +76,6 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
     public function reject(Envelope $envelope): void
     {
         throw new InvalidArgumentException('You cannot call reject() on the Messenger NatsTransport.');
-    }
-
-    public function reset()
-    {
-        // no-op
     }
 
     public function send(Envelope $envelope): Envelope
@@ -104,35 +101,7 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
 
     private function connect()
     {
-        $this->getStream(); // initiate stream
         $this->client->ping();
-    }
-
-    private function getStream(): Stream
-    {
-        if (!$this->stream) {
-            $this->stream = $this->client->getApi()->getStream($this->streamName);
-            //TODO make it configurable
-            $this->stream->getConfiguration()
-                ->setRetentionPolicy(RetentionPolicy::WORK_QUEUE)
-                ->setStorageBackend(StorageBackend::MEMORY)
-                ->setSubjects([$this->subject]);
-
-            $this->stream->createIfNotExists();
-        }
-
-        return $this->stream;
-    }
-
-    private function getConsumer(): Consumer
-    {
-        if (!$this->consumer) {
-            $this->consumer = $this->getStream()->getConsumer($this->streamName);
-            $this->consumer->getConfiguration()->setSubjectFilter($this->subject);
-            $this->consumer->setIterations(1);
-        }
-
-        return $this->consumer;
     }
 
     private function hashMessage(string $body): string
@@ -144,5 +113,26 @@ class NatsStreamingTransport implements TransportInterface, ResetInterface
         }
 
         return hash($algo, $body);
+    }
+
+    public function getMessageCount(): int
+    {
+        // TODO: Implement getMessageCount() method.
+    }
+
+    public function setup(): void
+    {
+        $this->stream = $this->client->getApi()->getStream($this->streamName);
+        //TODO make it configurable
+        $this->stream->getConfiguration()
+            ->setRetentionPolicy(RetentionPolicy::WORK_QUEUE)
+            ->setStorageBackend(StorageBackend::MEMORY)
+            ->setSubjects([$this->subject]);
+
+        $this->stream->createIfNotExists();
+
+        $this->consumer = $this->stream->getConsumer($this->streamName);
+        $this->consumer->getConfiguration()->setSubjectFilter($this->subject);
+        $this->consumer->setIterations(1);
     }
 }

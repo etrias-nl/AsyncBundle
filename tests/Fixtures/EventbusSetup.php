@@ -5,7 +5,7 @@ namespace Tests\Etrias\AsyncBundle\Fixtures;
 use Basis\Nats\Client;
 use Basis\Nats\Configuration;
 use Etrias\AsyncBundle\Messenger\Transport\NatsStreamingTransport;
-use PHPUnit\Framework\MockObject\Generator;
+use PHPUnit\Framework\MockObject\Generator\Generator;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use PHPUnit\Framework\MockObject\Rule\AnyInvokedCount as AnyInvokedCountMatcher;
@@ -68,6 +68,8 @@ class EventbusSetup
             null,
             3,
             $deduplication);
+
+        $this->natsTransport->setup();
 
         $this->transports = [
             'natsstreaming' => $this->natsTransport,
