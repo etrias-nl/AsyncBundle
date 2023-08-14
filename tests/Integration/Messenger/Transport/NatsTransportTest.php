@@ -71,6 +71,11 @@ class NatsTransportTest extends KernelTestCase
         $this->assertSame(['Handled Same message', 'Handled Same message'], $results);
     }
 
+    public function reject()
+    {
+
+    }
+
     private function testMessageHandling(int $numWorkers = 1, int $numMessages = 1, int $delayPublisher = 0, int $delayWorker = 0, ?int $timeout = null)
     {
         /** @var array<Process> $processes */
