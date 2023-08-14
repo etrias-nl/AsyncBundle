@@ -6,6 +6,7 @@ namespace Etrias\AsyncBundle\Console\Command;
 
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Command\SignalableCommandInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -19,55 +20,36 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * Adaption to CommandSchedulerBundle by Christoph Singer <singer@webagentur72.de>
  */
-class StartSchedulerCommand extends Command
+class StartSchedulerCommand extends Command implements SignalableCommandInterface
 {
     protected ?int $stopWorkSignalReceived = null;
 
-    public function __construct()
+    public function getSubscribedSignals(): array
     {
-        /**
-         * If the pcntl_signal exists, subscribe to the terminate and stop handling scheduled commands.
-         */
-        if(false !== function_exists('pcntl_signal'))
-        {
-            declare(ticks = 1);
-            pcntl_signal(SIGTERM, [$this, "handleSystemSignal"]);
-            pcntl_signal(SIGHUP,  [$this, "handleSystemSignal"]);
-
-        }
-
-        parent::__construct();
+        return [SIGTERM, SIGHUP];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function configure()
+    public function handleSignal(int $signal): void
+    {
+        $this->stopWorkSignalReceived = $signal;
+    }
+
+    protected function configure(): void
     {
         $this->setName('scheduler:start')
             ->setDescription('Starts command scheduler');
     }
 
-    public function handleSystemSignal($signo)
-    {
-        $this->stopWorkSignalReceived = $signo;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln(sprintf('<info>%s</info>', 'Starting command scheduler.'));
 
         return $this->scheduler($output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE ? $output : new NullOutput());
-
     }
 
-    private function scheduler(OutputInterface $output)
+    private function scheduler(OutputInterface $output): int
     {
         $input = new ArrayInput([]);
-
         $console = $this->getApplication();
         $command = $console->find('scheduler:execute');
 
