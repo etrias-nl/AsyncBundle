@@ -69,8 +69,6 @@ class EventbusSetup
             3,
             $deduplication);
 
-        $this->natsTransport->setup();
-
         $this->transports = [
             'natsstreaming' => $this->natsTransport,
         ];
