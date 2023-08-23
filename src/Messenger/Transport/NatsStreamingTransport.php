@@ -73,8 +73,7 @@ class NatsStreamingTransport implements TransportInterface, MessageCountAwareInt
 
     public function reject(Envelope $envelope): void
     {
-        $this->send($envelope);
-        $this->ack($envelope);
+        //no-op
     }
 
     public function send(Envelope $envelope): Envelope
