@@ -73,7 +73,8 @@ class NatsStreamingTransport implements TransportInterface, MessageCountAwareInt
 
     public function reject(Envelope $envelope): void
     {
-        throw new InvalidArgumentException('You cannot call reject() on the Messenger NatsTransport.');
+        $this->send($envelope);
+        $this->ack($envelope);
     }
 
     public function send(Envelope $envelope): Envelope
