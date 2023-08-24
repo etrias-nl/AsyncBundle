@@ -8,12 +8,15 @@
         "etrias/cqrs-bundle": "^1.0",
         "symfony/dependency-injection": "^6.0",
         "symfony/http-kernel": "^6.0",
-        "league/tactician-bundle": "^1.4"
+        "league/tactician-bundle": "^1.4",
+        "ramsey/uuid": "^4.7"
     },
     "suggest": {
         "ext-pcntl": "Used to gracefully stop executing tasks",
         "liip/monitor-bundle": "Monitor gearman servers",
         "symfony/stopwatch": "Add metrics in logging",
+        "symfony/messenger": "Use symfony messenger for async handling",
+        "basis-company/nats": "PHP Client for nats-streaming-server (only supported by symfony messenger)",
         "jmose/command-scheduler-bundle": "Schedule commands and execute them async",
         "symfony/process": "Required for async command handling"
     },
@@ -38,5 +41,13 @@
             "vendor/bin/php-cs-fixer fix --diff --show-progress run-in"
         ]
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "require-dev": {
+        "symfony/messenger": "^6.2",
+        "revolt/event-loop": "^1.0",
+        "basis-company/nats": "^0.13.1",
+        "ext-parallel": "*",
+        "phpunit/phpunit": "^10.1",
+        "symfony/process": "^6.3"
+    }
 }
