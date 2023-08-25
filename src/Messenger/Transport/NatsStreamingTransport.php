@@ -8,14 +8,14 @@ use Basis\Nats\Message\Payload;
 use Basis\Nats\Stream\RetentionPolicy;
 use Basis\Nats\Stream\StorageBackend;
 use Basis\Nats\Stream\Stream;
-use Ramsey\Uuid\Uuid;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Exception\InvalidArgumentException;
+-use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
 use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
 use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
+use Symfony\Component\Uid\Uuid;
 
 class NatsStreamingTransport implements TransportInterface, MessageCountAwareInterface
 {
@@ -84,7 +84,7 @@ class NatsStreamingTransport implements TransportInterface, MessageCountAwareInt
             $this->connect();
 
             $body = $encodedMessage['body'];
-            $messageId = $this->deduplication ? $this->hashMessage($body) : Uuid::uuid4();
+            $messageId = $this->deduplication ? $this->hashMessage($body) : Uuid::v4()->toRfc4122();
             $payload = new Payload($body, [
                 'Nats-Msg-Id' => $messageId
             ]);

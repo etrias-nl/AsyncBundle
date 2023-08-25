@@ -9,7 +9,7 @@
         "symfony/dependency-injection": "^6.0",
         "symfony/http-kernel": "^6.0",
         "league/tactician-bundle": "^1.4",
-        "ramsey/uuid": "^4.7"
+        "symfony/uid": "^6.3"
     },
     "suggest": {
         "ext-pcntl": "Used to gracefully stop executing tasks",
