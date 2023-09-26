@@ -9,7 +9,6 @@ use Basis\Nats\Stream\RetentionPolicy;
 use Basis\Nats\Stream\StorageBackend;
 use Basis\Nats\Stream\Stream;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
 use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
 use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
@@ -67,13 +66,12 @@ class NatsStreamingTransport implements TransportInterface, MessageCountAwareInt
 
     public function ack(Envelope $envelope): void
     {
-        //no-op, because ack is already handled by get.
-        //TODO ack must be arranged for correct exactly once delivery
+        // no-op
     }
 
     public function reject(Envelope $envelope): void
     {
-        //no-op
+        // no-op
     }
 
     public function send(Envelope $envelope): Envelope
@@ -97,9 +95,9 @@ class NatsStreamingTransport implements TransportInterface, MessageCountAwareInt
         return $envelope->with(new TransportMessageIdStamp($messageId));
     }
 
-    private function connect()
+    private function connect(): void
     {
-        $this->getStream(); // initiate stream
+        $this->getStream();
         $this->client->ping();
     }
 
@@ -107,7 +105,6 @@ class NatsStreamingTransport implements TransportInterface, MessageCountAwareInt
     {
         if (!$this->stream) {
             $this->stream = $this->client->getApi()->getStream($this->streamName);
-            //TODO make it configurable
             $this->stream->getConfiguration()
                 ->setRetentionPolicy(RetentionPolicy::WORK_QUEUE)
                 ->setStorageBackend(StorageBackend::MEMORY)
