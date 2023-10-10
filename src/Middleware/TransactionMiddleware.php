@@ -53,10 +53,6 @@ class TransactionMiddleware implements Middleware
             if (!$this->entityManager->getConnection()->isRollbackOnly()) {
                 $this->entityManager->commit();
             }
-
-            // @fixme; define event class, move out async-bundle (e.g. doctrine-utils)
-            $this->entityManager->getEventManager()->dispatchEvent('postCommit', new PostFlushEventArgs($this->entityManager));
-
         } catch (Throwable $e) {
             $this->rollbackTransaction();
 
