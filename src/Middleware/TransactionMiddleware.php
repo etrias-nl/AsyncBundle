@@ -54,7 +54,10 @@ class TransactionMiddleware implements Middleware
                 $this->entityManager->commit();
             }
         } catch (Throwable $e) {
-            $this->rollbackTransaction();
+            try {
+                $this->rollbackTransaction();
+            } catch (\Exception) {
+            }
 
             throw $e;
         } finally {
